@@ -744,7 +744,7 @@ impl LayoutThread {
 
         // Create a layout context for use throughout the following passes.
         let mut layout_context =
-            self.build_layout_context(guards.clone(), &map, &reflow_request, rayon_pool.is_some());
+            self.build_layout_context(guards.clone(), &map, &reflow_request, false); // try to do sequential first.
 
         let dirty_root = unsafe {
             ServoLayoutNode::new(&reflow_request.dirty_root.unwrap())
@@ -789,11 +789,12 @@ impl LayoutThread {
                     .unwrap()
                     .layout(traversal.context(), viewport_size)
             };
-            let fragment_tree = Arc::new(if let Some(pool) = rayon_pool {
-                pool.install(run_layout)
-            } else {
-                run_layout()
-            });
+            let fragment_tree = Arc::new(run_layout());
+            // let fragment_tree = Arc::new(if let Some(pool) = rayon_pool {
+            //     pool.install(run_layout)
+            // } else {
+                
+            // });
             *self.fragment_tree.borrow_mut() = Some(fragment_tree);
         }
 

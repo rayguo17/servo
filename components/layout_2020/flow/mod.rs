@@ -6,6 +6,7 @@
 //! Flow layout, also known as block-and-inline layout.
 
 use app_units::{Au, MAX_AU};
+use derive_more::derive::Debug;
 use inline::InlineFormattingContext;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use serde::Serialize;
@@ -83,6 +84,7 @@ pub(crate) enum BlockLevelBox {
     OutOfFlowFloatBox(FloatBox),
     OutsideMarker(OutsideMarker),
     SameFormattingContextBlock {
+        #[debug(skip)]
         base: LayoutBoxBase,
         contents: BlockContainer,
         contains_floats: bool,
@@ -688,7 +690,7 @@ fn layout_block_level_children_sequentially(
     // Because floats are involved, we do layout for this block formatting context in tree
     // order without parallelism. This enables mutable access to a `SequentialLayoutState` that
     // tracks every float encountered so far (again in tree order).
-    child_boxes
+    let res = child_boxes
         .iter()
         .map(|child_box| {
             let positioning_context_length_before_layout = positioning_context.len();
@@ -700,18 +702,18 @@ fn layout_block_level_children_sequentially(
                 Some(CollapsibleWithParentStartMargin(
                     placement_state.next_in_flow_margin_collapses_with_parent_start_margin,
                 )),
-            );
-
+            ); // size and inner layout.
+            // the order of placement is in here.
             placement_state
                 .place_fragment_and_update_baseline(&mut fragment, Some(sequential_layout_state));
             positioning_context.adjust_static_position_of_hoisted_fragments(
                 &fragment,
                 positioning_context_length_before_layout,
             );
-
             fragment
         })
-        .collect()
+        .collect();
+    res
 }
 
 impl BlockLevelBox {
@@ -1023,6 +1025,8 @@ fn layout_in_flow_non_replaced_block_level_same_formatting_context(
             inline: containing_block_for_children.size.inline,
         },
     };
+    let physical_content = content_rect.clone().as_physical(Some(containing_block));
+    //dbg!(physical_content);
 
     let mut base_fragment_info = base.base_fragment_info;
     if depends_on_block_constraints {
@@ -1436,6 +1440,8 @@ impl IndependentNonReplacedContents {
             size: content_size,
         };
 
+        let physical_rect = content_rect.clone().as_physical(Some(containing_block.clone()));
+        dbg!(physical_rect);
         let mut base_fragment_info = base.base_fragment_info;
         if depends_on_block_constraints {
             base_fragment_info.flags.insert(
@@ -1944,6 +1950,7 @@ impl<'container> PlacementState<'container> {
         fragment: &mut Fragment,
         sequential_layout_state: Option<&mut SequentialLayoutState>,
     ) {
+        
         match fragment {
             Fragment::Box(fragment) => {
                 // If this child is a marker positioned outside of a list item, then record its
@@ -1955,6 +1962,7 @@ impl<'container> PlacementState<'container> {
                 // the baseline of list item content and the first line of the item content should
                 // be at least as tall as the marker -- not the entire list item itself.
                 let fragment = &mut *fragment.borrow_mut();
+                dbg!(&fragment.content_rect);
                 let is_outside_marker = fragment
                     .base
                     .flags

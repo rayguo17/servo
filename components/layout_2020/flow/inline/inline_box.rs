@@ -5,6 +5,7 @@
 use std::vec::IntoIter;
 
 use app_units::Au;
+use derive_more::derive::Debug;
 use fonts::FontMetrics;
 use serde::Serialize;
 use servo_arc::Arc;
@@ -21,8 +22,11 @@ use crate::ContainingBlock;
 
 #[derive(Debug, Serialize)]
 pub(crate) struct InlineBox {
+
+    #[debug(skip)]
     pub base_fragment_info: BaseFragmentInfo,
     #[serde(skip_serializing)]
+    #[debug(skip)]
     pub style: Arc<ComputedValues>,
     /// The identifier of this inline box in the containing [`super::InlineFormattingContext`].
     pub(super) identifier: InlineBoxIdentifier,

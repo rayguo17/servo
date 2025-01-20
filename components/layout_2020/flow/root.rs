@@ -331,9 +331,9 @@ impl BoxTree {
             .stylist
             .device()
             .default_computed_values();
-
         // FIXME: use the document’s mode:
         // https://drafts.csswg.org/css-writing-modes/#principal-flow
+        dbg!(&self.root);
         let physical_containing_block = PhysicalRect::new(
             PhysicalPoint::zero(),
             PhysicalSize::new(

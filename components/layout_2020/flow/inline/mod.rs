@@ -81,6 +81,7 @@ use std::rc::Rc;
 use app_units::{Au, MAX_AU};
 use bitflags::bitflags;
 use construct::InlineFormattingContextBuilder;
+use derive_more::derive::Debug;
 use fonts::{FontMetrics, GlyphStore};
 use inline_box::{InlineBox, InlineBoxContainerState, InlineBoxIdentifier, InlineBoxes};
 use line::{
@@ -140,10 +141,12 @@ pub(crate) struct InlineFormattingContext {
     /// [`InlineItem::StartInlineBox`] and [`InlineItem::EndInlineBox`] allow representing
     /// the tree of inline boxes within the formatting context, but a flat array allows
     /// easy iteration through all inline items.
+    #[debug(skip)]
     pub(super) inline_items: Vec<ArcRefCell<InlineItem>>,
 
     /// The tree of inline boxes in this [`InlineFormattingContext`]. These are stored in
     /// a flat array with each being given a [`InlineBoxIdentifier`].
+    #[debug(skip)]
     pub(super) inline_boxes: InlineBoxes,
 
     /// The text content of this inline formatting context.
@@ -151,8 +154,9 @@ pub(crate) struct InlineFormattingContext {
 
     /// A store of font information for all the shaped segments in this formatting
     /// context in order to avoid duplicating this information.
+    #[debug(skip)]
     pub font_metrics: Vec<FontKeyAndMetrics>,
-
+    #[debug(skip)]
     pub(super) text_decoration_line: TextDecorationLine,
 
     /// Whether this IFC contains the 1st formatted line of an element:

@@ -3,6 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 use app_units::Au;
+use derive_more::derive::Debug;
 use serde::Serialize;
 use servo_arc::Arc;
 use style::properties::ComputedValues;
@@ -30,7 +31,8 @@ use crate::{ConstraintSpace, ContainingBlock, IndefiniteContainingBlock, Logical
 /// <https://drafts.csswg.org/css-display/#independent-formatting-context>
 #[derive(Debug, Serialize)]
 pub(crate) struct IndependentFormattingContext {
-    pub base: LayoutBoxBase,
+    #[debug(skip)]
+    pub base: LayoutBoxBase, 
     pub contents: IndependentFormattingContextContents,
 }
 

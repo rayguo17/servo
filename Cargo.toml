@@ -16,6 +16,7 @@ publish = false
 rust-version = "1.83.0"
 
 [workspace.dependencies]
+derive_more = { version = "1.0.0", features = ["full"] }
 accountable-refcell = "0.2.0"
 aes = "0.8.4"
 aes-kw = { version = "0.2.1", features = ["alloc"] }

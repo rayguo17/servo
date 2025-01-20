@@ -1081,6 +1081,15 @@ dependencies = [
 
 [[package]]
 name = "convert_case"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ec182b0ca2f35d8fc196cf3404988fd8b8c739a4d270ff118a398feb0cbec1ca"
+dependencies = [
+ "unicode-segmentation",
+]
+
+[[package]]
+name = "convert_case"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bb402b8d4c85569410425650ce3eddc7d698ed96d39a73f941b08fb63082f1e7"
@@ -1455,6 +1464,28 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "derive_more"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4a9b99b9cbbe49445b21764dc0625032a89b145a2642e67603e1c936f5458d05"
+dependencies = [
+ "derive_more-impl",
+]
+
+[[package]]
+name = "derive_more-impl"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cb7330aeadfbe296029522e6c40f315320aba36fc43a5b3632f3795348f3bd22"
+dependencies = [
+ "convert_case 0.6.0",
+ "proc-macro2",
+ "quote",
+ "syn",
+ "unicode-xid",
 ]
 
 [[package]]
@@ -3986,6 +4017,7 @@ dependencies = [
  "bitflags 2.7.0",
  "canvas_traits",
  "data-url",
+ "derive_more 1.0.0",
  "embedder_traits",
  "euclid",
  "fnv",
@@ -4617,7 +4649,7 @@ version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bd974d6316c670078fa15276c6134e5b45142b393db350b24682ae613733cdac"
 dependencies = [
- "convert_case",
+ "convert_case 0.7.1",
  "once_cell",
  "proc-macro2",
  "quote",
@@ -4631,7 +4663,7 @@ version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a3a8b89bbc39f81c472e76813dcd837f311aae7850a24a01d0bf5858221b1fd2"
 dependencies = [
- "convert_case",
+ "convert_case 0.7.1",
  "napi-derive-backend-ohos",
  "proc-macro2",
  "quote",
@@ -6316,7 +6348,7 @@ source = "git+https://github.com/servo/stylo?branch=2025-01-02#dfed17bd04a713f5d
 dependencies = [
  "bitflags 2.7.0",
  "cssparser",
- "derive_more",
+ "derive_more 0.99.18",
  "fxhash",
  "log",
  "new_debug_unreachable",
@@ -6716,6 +6748,7 @@ dependencies = [
  "backtrace",
  "cc",
  "cfg-if",
+ "derive_more 1.0.0",
  "dirs",
  "egui",
  "egui-winit",
@@ -7066,7 +7099,7 @@ dependencies = [
  "bitflags 2.7.0",
  "byteorder",
  "cssparser",
- "derive_more",
+ "derive_more 0.99.18",
  "dom",
  "encoding_rs",
  "euclid",
@@ -8385,7 +8418,7 @@ dependencies = [
  "bitflags 2.7.0",
  "build-parallel",
  "byteorder",
- "derive_more",
+ "derive_more 0.99.18",
  "etagere",
  "euclid",
  "fxhash",

@@ -17,6 +17,7 @@ doctest = false
 tracing = ["dep:tracing"]
 
 [dependencies]
+derive_more = { workspace = true, version="1.0.0", features = ["full"]}
 app_units = { workspace = true }
 atomic_refcell = { workspace = true }
 base = { workspace = true }
