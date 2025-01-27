@@ -799,7 +799,7 @@ impl FlexContainer {
             // > defined below) to fully consume the excess space.
             let fallback_is_needed = match resolved_align_content {
                 _ if remaining_free_cross_space <= Au::zero() => true,
-                AlignFlags::STRETCH => num_lines < 1,
+                AlignFlags::STRETCH | AlignFlags::NORMAL => num_lines < 1,
                 AlignFlags::SPACE_BETWEEN | AlignFlags::SPACE_AROUND | AlignFlags::SPACE_EVENLY => {
                     num_lines < 2
                 },
@@ -808,7 +808,7 @@ impl FlexContainer {
 
             if fallback_is_needed {
                 (resolved_align_content, is_safe) = match resolved_align_content {
-                    AlignFlags::STRETCH => (AlignFlags::FLEX_START, true),
+                    AlignFlags::STRETCH | AlignFlags::NORMAL => (AlignFlags::FLEX_START, true),
                     AlignFlags::SPACE_BETWEEN => (AlignFlags::FLEX_START, true),
                     AlignFlags::SPACE_AROUND => (AlignFlags::CENTER, true),
                     AlignFlags::SPACE_EVENLY => (AlignFlags::CENTER, true),
@@ -835,7 +835,7 @@ impl FlexContainer {
             AlignFlags::END if flex_wrap_is_reversed => Au::zero(),
             AlignFlags::END => remaining_free_cross_space,
             AlignFlags::CENTER => remaining_free_cross_space / 2,
-            AlignFlags::STRETCH => Au::zero(),
+            AlignFlags::STRETCH | AlignFlags::NORMAL => Au::zero(),
             AlignFlags::SPACE_BETWEEN => Au::zero(),
             AlignFlags::SPACE_AROUND => remaining_free_cross_space / num_lines as i32 / 2,
             AlignFlags::SPACE_EVENLY => remaining_free_cross_space / (num_lines as i32 + 1),
@@ -1071,7 +1071,7 @@ fn allocate_free_cross_space_for_flex_line(
         AlignFlags::END => (Au::zero(), Au::zero()),
         AlignFlags::FLEX_END => (Au::zero(), Au::zero()),
         AlignFlags::CENTER => (Au::zero(), Au::zero()),
-        AlignFlags::STRETCH => (
+        AlignFlags::STRETCH | AlignFlags::NORMAL => (
             remaining_free_cross_space / remaining_line_count,
             Au::zero(),
         ),
