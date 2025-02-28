@@ -4504,7 +4504,7 @@ impl Document {
         let current_timeline_value = self.current_animation_timeline_value();
         self.animations
             .borrow()
-            .mark_animating_nodes_as_dirty(current_timeline_value);
+            .mark_animating_nodes_as_dirty(current_timeline_value);// Is it true that this trigger the reflow? or it is based on vsync signal? 
     }
 
     pub(crate) fn current_animation_timeline_value(&self) -> f64 {

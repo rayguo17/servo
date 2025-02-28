@@ -56,8 +56,7 @@ use profile_traits::ipc as ProfiledIpc;
 use profile_traits::mem::ProfilerChan as MemProfilerChan;
 use profile_traits::time::ProfilerChan as TimeProfilerChan;
 use script_layout_interface::{
-    combine_id_with_fragment_type, FragmentType, Layout, PendingImageState, QueryMsg, Reflow,
-    ReflowGoal, ReflowRequest, TrustedNodeAddress,
+    combine_id_with_fragment_type, FragmentType, ImageAnimationAction, Layout, PendingImageState, QueryMsg, Reflow, ReflowGoal, ReflowRequest, TrustedNodeAddress
 };
 use script_traits::{
     DocumentState, LoadData, LoadOrigin, NavigationHistoryBehavior, ScriptMsg, ScriptThreadMessage,
@@ -150,6 +149,7 @@ use crate::dom::webgpu::identityhub::IdentityHub;
 use crate::dom::windowproxy::{WindowProxy, WindowProxyHandler};
 use crate::dom::worklet::Worklet;
 use crate::dom::workletglobalscope::WorkletGlobalScopeType;
+use crate::image_animation::ImageAnimationSet;
 use crate::layout_image::fetch_image_for_layout;
 use crate::messaging::{MainThreadScriptMsg, ScriptEventLoopReceiver, ScriptEventLoopSender};
 use crate::microtask::MicrotaskQueue;
@@ -233,6 +233,9 @@ pub(crate) struct Window {
     image_cache: Arc<dyn ImageCache>,
     #[no_trace]
     image_cache_sender: IpcSender<PendingImageResponse>,
+    #[no_trace]
+    #[ignore_malloc_size_of = "Arc"]
+    image_animation: Arc<ImageAnimationSet>,
     window_proxy: MutNullableDom<WindowProxy>,
     document: MutNullableDom<Document>,
     location: MutNullableDom<Location>,
@@ -490,6 +493,10 @@ impl Window {
 
     pub(crate) fn image_cache(&self) -> Arc<dyn ImageCache> {
         self.image_cache.clone()
+    }
+
+    pub(crate) fn image_animation(&self) -> Arc<ImageAnimationSet> {
+        self.image_animation.clone()
     }
 
     /// This can panic if it is called after the browsing context has been discarded
@@ -1893,7 +1900,6 @@ impl Window {
         condition: Option<ReflowTriggerCondition>,
     ) -> bool {
         self.Document().ensure_safe_to_run_script_or_layout();
-
         // If layouts are blocked, we block all layouts that are for display only. Other
         // layouts (for queries and scrolling) are not blocked, as they do not display
         // anything and script excpects the layout to be up-to-date after they run.
@@ -1964,6 +1970,7 @@ impl Window {
             animation_timeline_value: document.current_animation_timeline_value(),
             animations: document.animations().sets.clone(),
             theme: self.theme.get(),
+            image_animate_helper: Arc::new(self.image_animation.to_layout_helper()),
         };
 
         let Some(results) = self.layout.borrow_mut().reflow(reflow) else {
@@ -1990,10 +1997,27 @@ impl Window {
             }
 
             let mut images = self.pending_layout_images.borrow_mut();
-            let nodes = images.entry(id).or_default();
+            let nodes = images.entry(id).or_default(); // PendingImageId <-> node
             if !nodes.iter().any(|n| std::ptr::eq(&**n, &*node)) {
+                // Pendings Image Found here would be register here.
                 let trusted_node = Trusted::new(&*node);
+                let opaque_node = node.clone().to_opaque();
+                let image_animation_set = self.image_animation();
                 let sender = self.register_image_cache_listener(id, move |response| {
+                    if let ImageResponse::Loaded(image_container, servo_url) = &response.response {
+                        // register if needed.
+                        if image_container.is_animate {
+                            println!("Registering Node Image");
+                            image_animation_set.register_animation(
+                                image_container.clone(),
+                                opaque_node,
+                                Some(servo_url.clone()),
+                            );
+                        } else {
+                            // try cancel if not animated
+                            image_animation_set.cancel_animation(&opaque_node);
+                        }
+                    }
                     trusted_node
                         .root()
                         .owner_window()
@@ -2004,6 +2028,22 @@ impl Window {
                     .add_listener(ImageResponder::new(sender, self.pipeline_id(), id));
                 nodes.push(Dom::from_ref(&*node));
             }
+        }
+
+        // try register animation for image.
+        for register_image_item in results.animated_image_actions {
+            match register_image_item{
+                ImageAnimationAction::Register(register_item)=>{
+                    self.image_animation.register_animation(
+                        register_item.image,
+                        register_item.node,
+                        register_item.url,
+                    );
+                },
+                ImageAnimationAction::Cancel(cancel_item)=>{
+                    self.image_animation.cancel_animation(&cancel_item.node);
+                }
+            };
         }
 
         let size_messages = self
@@ -2766,6 +2806,7 @@ impl Window {
         font_context: Arc<FontContext>,
         image_cache_sender: IpcSender<PendingImageResponse>,
         image_cache: Arc<dyn ImageCache>,
+        image_animation_store: Arc<ImageAnimationSet>,
         resource_threads: ResourceThreads,
         #[cfg(feature = "bluetooth")] bluetooth_thread: IpcSender<BluetoothRequest>,
         mem_profiler_chan: MemProfilerChan,
@@ -2803,7 +2844,6 @@ impl Window {
             Point2D::zero(),
             window_size.initial_viewport.to_untyped(),
         ));
-
         let win = Box::new(Self {
             webview_id,
             globalscope: GlobalScope::new_inherited(
@@ -2827,6 +2867,7 @@ impl Window {
             font_context,
             image_cache_sender,
             image_cache,
+            image_animation: image_animation_store, // Todo: Figure out what type do we want?
             navigator: Default::default(),
             location: Default::default(),
             history: Default::default(),
