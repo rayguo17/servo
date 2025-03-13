@@ -404,6 +404,8 @@ pub enum ScriptThreadMessage {
     SetScrollStates(PipelineId, Vec<ScrollState>),
     /// Send the paint time for a specific epoch.
     SetEpochPaintTime(PipelineId, Epoch, CrossProcessInstant),
+    /// Notify Image Animation UPdate.
+    UpdateImageActiveFrame(PipelineId),
 }
 
 impl fmt::Debug for ScriptThreadMessage {
@@ -444,6 +446,7 @@ impl fmt::Debug for ScriptThreadMessage {
             SetWebGPUPort(..) => "SetWebGPUPort",
             SetScrollStates(..) => "SetScrollStates",
             SetEpochPaintTime(..) => "SetEpochPaintTime",
+            UpdateImageActiveFrame(..) => "UpdateImageActiveFrame",
         };
         write!(formatter, "ConstellationControlMsg::{}", variant)
     }
