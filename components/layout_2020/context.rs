@@ -66,7 +66,7 @@ impl LayoutContext<'_> {
         let cache_result = self.image_cache.get_cached_image_status(
             url.clone(),
             self.origin.clone(),
-            None,
+            None, // cors_setting in what case is not null?
             use_placeholder,
         );
 
@@ -113,9 +113,30 @@ impl LayoutContext<'_> {
         {
             return Some(*existing_webrender_image);
         }
-
+        // we want to register the infomation here. but we only have url
         match self.get_or_request_image_or_meta(node, url.clone(), use_placeholder) {
             Some(ImageOrMetadataAvailable::ImageAvailable { image, .. }) => {
+                // TODO: Do some image animation registering here.
+                /* 
+                    There are two things need to be stored in layoutcontext:
+                        1. info used to determine whether this <node,ImageIdentifier> is in our ImageAnimationManager, what need to be determined:
+                            a. if the image is animated:
+                                1. does the node exist in the imageAnimationManager
+                                    a. if exist, check if the imageIdentifier is identical,
+                                        1. if is identical, do nothing.
+                                        2. if not identical, register [Update] action with information needed.
+                                    b. if not exist, register [Add] action with information needed.
+                            b. if the image is not animated:
+                                1. check if the node exist in the imageAnimationManager
+                                    a. if exist, register [Delete] action with information needed.
+                                    b. if does not exist, do nothing.
+
+                        2. list of <Action: to add/update/delete <node,ImageIdentifier> in ImageAnimationManager >
+                            a. for add action, what information do we need: <Node, ImageIdentifier, Arc<Image> >
+                            b. for update action: <Node, NewImageIdentifier, Arc<Image>>
+                            c. for delete action: <Node>
+                */ 
+                
                 let image_info = WebRenderImageInfo {
                     width: image.width,
                     height: image.height,

@@ -328,7 +328,7 @@ pub struct Constellation<STF, SWF> {
     compositor_proxy: CompositorProxy,
 
     /// Bookkeeping data for all webviews in the constellation.
-    webviews: WebViewManager<WebView>,
+    webviews: WebViewManager<WebView>, // Constellation also has its own view of the webviews.
 
     /// Channels for the constellation to send messages to the public
     /// resource-related threads. There are two groups of resource threads: one
@@ -906,18 +906,18 @@ where
         );
 
         let (event_loop, host) = match sandbox {
-            IFrameSandboxState::IFrameSandboxed => (None, None),
-            IFrameSandboxState::IFrameUnsandboxed => {
+            IFrameSandboxState::IFrameSandboxed => (None, None), // if sand box, we would not allow to share the same script thread.
+            IFrameSandboxState::IFrameUnsandboxed => { // otherwise the iframe is shared in the script thread.
                 // If this is an about:blank or about:srcdoc load, it must share the creator's
                 // event loop. This must match the logic in the script thread when determining
                 // the proper origin.
                 if load_data.url.as_str() != "about:blank" &&
                     load_data.url.as_str() != "about:srcdoc"
                 {
-                    match reg_host(&load_data.url) {
+                    match reg_host(&load_data.url) { // Parse the host from url.
                         None => (None, None),
                         Some(host) => {
-                            match self.get_event_loop(
+                            match self.get_event_loop( // get event loop of the host. Some thoughts, the same host should share the same event loop so that they can share resources.
                                 &host,
                                 &top_level_browsing_context_id,
                                 &opener,
@@ -928,9 +928,9 @@ where
                                 },
                                 Ok(event_loop) => {
                                     if let Some(event_loop) = event_loop.upgrade() {
-                                        (Some(event_loop), None)
+                                        (Some(event_loop), None) // host already Exist so we don't register later.
                                     } else {
-                                        (None, Some(host))
+                                        (None, Some(host)) // Can't upgrade, some unknown error try to create a new event loop later.
                                     }
                                 },
                             }
@@ -988,7 +988,7 @@ where
                 initial_viewport: initial_window_size,
                 device_pixel_ratio: self.window_size.device_pixel_ratio,
             },
-            event_loop,
+            event_loop, // Pass the event loop to pipeline. 
             load_data,
             prev_throttled: throttled,
             webrender_document: self.webrender_document,
@@ -3501,7 +3501,7 @@ where
             None => return warn!("{}: Got script tick after closure", pipeline_id),
         };
 
-        let message = ScriptThreadMessage::TickAllAnimations(pipeline_id, tick_type);
+        let message = ScriptThreadMessage::TickAllAnimations(pipeline_id, tick_type); // Send a message in script thread, to run checking in script thread
         if let Err(e) = pipeline.event_loop.send(message) {
             self.handle_send_error(pipeline_id, e);
         }
@@ -3932,9 +3932,9 @@ where
 
     #[cfg_attr(
         feature = "tracing",
-        tracing::instrument(skip_all, fields(servo_profiling = true), level = "trace")
+        //tracing::instrument(skip_all, fields(servo_profiling = true), level = "trace")
     )]
-    fn update_browsing_context(
+    fn update_browsing_context( // how to traverse <- -> URL? switching between different browsing context
         &mut self,
         browsing_context_id: BrowsingContextId,
         new_reloader: NeedsToReload,
@@ -4060,7 +4060,7 @@ where
 
     #[cfg_attr(
         feature = "tracing",
-        tracing::instrument(skip_all, fields(servo_profiling = true), level = "trace")
+        //tracing::instrument(skip_all, fields(servo_profiling = true), level = "trace")
     )]
     fn update_pipeline(
         &mut self,
@@ -4090,7 +4090,7 @@ where
 
     #[cfg_attr(
         feature = "tracing",
-        tracing::instrument(skip_all, fields(servo_profiling = true), level = "trace")
+        //tracing::instrument(skip_all, fields(servo_profiling = true), level = "trace")
     )]
     fn handle_joint_session_history_length(
         &self,

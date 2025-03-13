@@ -570,7 +570,7 @@ impl Servo {
             return false;
         }
 
-        self.compositor.borrow_mut().receive_messages();
+        self.compositor.borrow_mut().receive_messages(); 
 
         // Only handle incoming embedder messages if the compositor hasn't already started shutting down.
         while let Ok(message) = self.embedder_receiver.try_recv() {
@@ -585,8 +585,9 @@ impl Servo {
             self.delegate()
                 .notify_error(self, ServoError::LostConnectionWithBackend);
         }
-
+        //println!("Try to perform compositor");
         self.compositor.borrow_mut().perform_updates();
+        println!("New frame ready message sent"); // Is it true that, actually each time the compositor have a new event, there will be new frame?
         self.send_new_frame_ready_messages();
         self.clean_up_destroyed_webview_handles();
 
@@ -598,7 +599,12 @@ impl Servo {
     }
 
     fn send_new_frame_ready_messages(&self) {
-        if !self.compositor.borrow().needs_repaint() {
+        /* Two Scenario:
+            1. Change Animation state, and changed to animation_present.
+            2. New WebRenderFrameReady.
+        */ 
+        
+        if !self.compositor.borrow().needs_repaint() { // Here we mark we need to repaint the compositor.
             return;
         }
 
@@ -608,7 +614,7 @@ impl Servo {
             .values()
             .filter_map(WebView::from_weak_handle)
         {
-            webview.delegate().notify_new_frame_ready(webview);
+            webview.delegate().notify_new_frame_ready(webview); // by notifying, 
         }
     }
 
@@ -660,7 +666,7 @@ impl Servo {
         self.compositor.borrow_mut().deinit();
     }
 
-    pub fn new_webview(&self, url: url::Url) -> WebView {
+    pub fn new_webview(&self, url: url::Url) -> WebView { // Servo Webview is the one that used here.
         let webview = WebView::new(&self.constellation_proxy, self.compositor.clone());
         self.webviews
             .borrow_mut()

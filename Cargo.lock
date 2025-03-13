@@ -6418,6 +6418,7 @@ dependencies = [
  "malloc_size_of_derive",
  "metrics",
  "net_traits",
+ "parking_lot",
  "pixels",
  "profile_traits",
  "range",

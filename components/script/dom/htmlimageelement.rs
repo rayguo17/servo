@@ -325,7 +325,7 @@ impl HTMLImageElement {
             img_url.clone(),
             window.origin().immutable().clone(),
             cors_setting_for_element(self.upcast()),
-            UsePlaceholder::Yes,
+            UsePlaceholder::Yes, // At this phase, we accept place holder.
         );
 
         match cache_result {
@@ -854,7 +854,7 @@ impl HTMLImageElement {
                 if let Some(pending_url) = self.pending_request.borrow().parsed_url.clone() {
                     // Step 13
                     if pending_url == *url {
-                        return;
+                        return; //already fetching image.
                     }
                 }
             },
@@ -895,7 +895,7 @@ impl HTMLImageElement {
     }
 
     /// Step 8-12 of html.spec.whatwg.org/multipage/#update-the-image-data
-    fn update_the_image_data_sync_steps(&self, can_gc: CanGc) {
+    fn update_the_image_data_sync_steps(&self, can_gc: CanGc) { //
         let document = self.owner_document();
         let global = self.owner_global();
         let task_manager = global.task_manager();
@@ -933,7 +933,7 @@ impl HTMLImageElement {
         match parsed_url {
             Ok(url) => {
                 // Step 13-17
-                self.prepare_image_request(&url, &src, pixel_density, can_gc);
+                self.prepare_image_request(&url, &src, pixel_density, can_gc); // image fetch schedule here.
             },
             Err(_) => {
                 self.abort_request(State::Broken, ImageRequestPhase::Current, can_gc);

@@ -89,7 +89,7 @@ impl Animations {
         let rooted_nodes = self.rooted_nodes.borrow();
         for node in sets
             .keys()
-            .filter_map(|key| rooted_nodes.get(&NoTrace(key.node)))
+            .filter_map(|key| rooted_nodes.get(&NoTrace(key.node))) // key need to be in rooted_nodes.
         {
             node.dirty(NodeDamage::NodeStyleDamaged);
         }

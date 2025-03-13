@@ -461,15 +461,19 @@ pub enum DocumentState {
 /// For a given pipeline, whether any animations are currently running
 /// and any animation callbacks are queued
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub enum AnimationState {
+pub enum AnimationState { // are these can only have one exist at the same time?
     /// Animations are active but no callbacks are queued
     AnimationsPresent,
     /// Animations are active and callbacks are queued
     AnimationCallbacksPresent,
+    /// Image Animation is active.
+    ImageAnimationsPresent,
     /// No animations are active and no callbacks are queued
     NoAnimationsPresent,
     /// No animations are active but callbacks are queued
     NoAnimationCallbacksPresent,
+    /// No Image animations are active
+    NoImageAnimationPresent,
 }
 
 /// Input events from the embedder that are sent via the `Constellation`` to the `ScriptThread`.
@@ -624,6 +628,8 @@ bitflags! {
         const REQUEST_ANIMATION_FRAME = 0b001;
         /// Trigger restyles for CSS Animations and Transitions.
         const CSS_ANIMATIONS_AND_TRANSITIONS = 0b010;
+        /// Trigger Image Animation updates, including video:
+        const IMAGE_ANIMATIONS = 0b100;
     }
 }
 

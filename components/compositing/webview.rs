@@ -224,18 +224,25 @@ impl WebView {
             AnimationState::AnimationCallbacksPresent => {
                 pipeline_details.animation_callbacks_running = true;
             },
+            AnimationState::ImageAnimationsPresent =>{
+                pipeline_details.image_animations_running = true;
+            }
             AnimationState::NoAnimationsPresent => {
                 pipeline_details.animations_running = false;
             },
-            AnimationState::NoAnimationCallbacksPresent => {
+            AnimationState::NoAnimationCallbacksPresent => { // Fake Call back.
                 pipeline_details.animation_callbacks_running = false;
             },
+            AnimationState::NoImageAnimationPresent => {
+                pipeline_details.image_animations_running = false;
+            }
         }
         pipeline_details.throttled
     }
 
     pub(crate) fn tick_all_animations(&self, compositor: &IOCompositor) -> bool {
         let mut ticked_any = false;
+        println!("Send to every pipeline");
         for pipeline_details in self.pipelines.values() {
             ticked_any = pipeline_details.tick_animations(compositor) || ticked_any;
         }
@@ -247,6 +254,7 @@ impl WebView {
         pipeline_id: PipelineId,
         compositor: &IOCompositor,
     ) {
+        println!("Send to dedicated pipeline: {:?}", pipeline_id);
         if let Some(pipeline_details) = self.pipelines.get(&pipeline_id) {
             pipeline_details.tick_animations(compositor);
         }
@@ -684,7 +692,7 @@ impl WebView {
         if self.pending_scroll_zoom_events.is_empty() {
             return;
         }
-
+        //println!("Handling Scroll Event");
         // Batch up all scroll events into one, or else we'll do way too much painting.
         let mut combined_scroll_event: Option<ScrollEvent> = None;
         let mut combined_magnification = 1.0;
@@ -762,8 +770,8 @@ impl WebView {
             );
             self.send_scroll_positions_to_layout_for_pipeline(pipeline_id);
         }
-
-        compositor.generate_frame(&mut transaction, RenderReasons::APZ);
+        println!("Handle Scroll in webview");
+        compositor.generate_frame(&mut transaction, RenderReasons::APZ); // Scroll
         self.global.borrow_mut().send_transaction(transaction);
     }
 
@@ -799,7 +807,7 @@ impl WebView {
                 HitTestFlags::FIND_ALL,
                 None,
                 get_pipeline_details,
-            );
+            ); // How many threads do we have? Which thread should we do this update in? Maybe we should not event do the update in script thread? The concern is that ImageCache is also inside scriptthread, per document.
 
         // Iterate through all hit test results, processing only the first node of each pipeline.
         // This is needed to propagate the scroll events from a pipeline representing an iframe to

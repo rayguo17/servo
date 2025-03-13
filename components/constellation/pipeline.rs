@@ -225,13 +225,13 @@ impl Pipeline {
                     window_size: state.window_size,
                 };
 
-                if let Err(e) = script_chan.send(ScriptThreadMessage::AttachLayout(new_layout_info))
+                if let Err(e) = script_chan.send(ScriptThreadMessage::AttachLayout(new_layout_info)) // Try to let the event loop to handle the new layout, clicking the link that belongs to the same host.
                 {
                     warn!("Sending to script during pipeline creation failed ({})", e);
                 }
                 (script_chan, None)
             },
-            None => {
+            None => { // only when the eventloop does not exist we will create a thread to execute the event loop.
                 let (script_chan, script_port) = ipc::channel().expect("Pipeline script chan");
 
                 // Route messages coming from content to devtools as appropriate.
@@ -286,7 +286,7 @@ impl Pipeline {
                     opts: (*opts::get()).clone(),
                     prefs: Box::new(prefs::get().clone()),
                     pipeline_namespace_id: state.pipeline_namespace_id,
-                    webrender_document: state.webrender_document,
+                    webrender_document: state.webrender_document, // the related document ID that will be used to build display list.
                     cross_process_compositor_api: state
                         .compositor_proxy
                         .cross_process_compositor_api
@@ -302,6 +302,7 @@ impl Pipeline {
                 //
                 // Yes, that's all there is to it!
                 let bhm_control_chan = if opts::get().multiprocess {
+                    println!("Multiprocess!");
                     let (bhm_control_chan, bhm_control_port) =
                         ipc::channel().expect("Sampler chan");
                     unprivileged_pipeline_content.bhm_control_port = Some(bhm_control_port);
@@ -309,10 +310,11 @@ impl Pipeline {
                     Some(bhm_control_chan)
                 } else {
                     // Should not be None in single-process mode.
+                    println!("Single Process: inside a thread.");
                     let register = state
                         .background_monitor_register
                         .expect("Couldn't start content, no background monitor has been initiated");
-                    unprivileged_pipeline_content.start_all::<STF>(
+                    unprivileged_pipeline_content.start_all::<STF>( // Script will be create here
                         false,
                         state.layout_factory,
                         register,
@@ -323,7 +325,7 @@ impl Pipeline {
                 (EventLoop::new(script_chan), bhm_control_chan)
             },
         };
-
+        // Pipeline would reuse the script thread, 
         let pipeline = Pipeline::new(
             state.id,
             state.browsing_context_id,
@@ -518,19 +520,19 @@ impl UnprivilegedPipelineContent {
         // Idempotent in single-process mode.
         PipelineNamespace::set_installer_sender(self.namespace_request_sender);
 
-        let image_cache = Arc::new(ImageCacheImpl::new(
+        let image_cache = Arc::new(ImageCacheImpl::new( // This is use per Pipeline. // ImageCache is inside the ScriptThread. Maybe we can just get a Arc of it. And then track the status in Compositor. 
             self.cross_process_compositor_api.clone(),
             self.rippy_data,
         ));
         let (content_process_shutdown_chan, content_process_shutdown_port) = unbounded();
-        STF::create(
+        STF::create( // Create and then run the thread
             InitialScriptState {
                 id: self.id,
                 browsing_context_id: self.browsing_context_id,
                 top_level_browsing_context_id: self.top_level_browsing_context_id,
                 parent_info: self.parent_pipeline_id,
                 opener: self.opener,
-                constellation_sender: self.script_chan.clone(),
+                constellation_sender: self.script_chan.clone(), // Event_loop checker here rename to constellation_sneder.
                 constellation_receiver: self.script_port,
                 pipeline_to_constellation_sender: self.script_to_constellation_chan.clone(),
                 background_hang_monitor_register: background_hang_monitor_register.clone(),

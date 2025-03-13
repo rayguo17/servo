@@ -407,7 +407,7 @@ impl Minibrowser {
                     );
                 }
 
-                state.repaint_servo_if_necessary();
+                state.repaint_servo_if_necessary(); // first update the minibrowser,inside update_the_minibrowser, try to see if servo need some reflow/new frame change. // Which means repaint of Animated Image should also be in here.
 
                 if let Some(render_to_parent) = rendering_context.render_to_parent_callback() {
                     ui.painter().add(PaintCallback {

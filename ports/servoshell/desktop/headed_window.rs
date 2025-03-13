@@ -409,7 +409,7 @@ impl Window {
                 }
             })
             .shortcut(CMD_OR_CONTROL, 'T', || {
-                state.new_toplevel_webview(Url::parse("servo:newtab").unwrap());
+                state.new_toplevel_webview(Url::parse("servo:newtab").unwrap()); //click tab, new webview
             })
             .shortcut(CMD_OR_CONTROL, 'Q', || state.servo().start_shutting_down())
             .otherwise(|| handled = false);

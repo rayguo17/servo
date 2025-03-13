@@ -100,7 +100,7 @@ impl App {
             Some(event_loop) => {
                 let window = headed_window::Window::new(&self.servoshell_preferences, event_loop);
                 self.minibrowser = Some(Minibrowser::new(
-                    window.offscreen_rendering_context(),
+                    window.offscreen_rendering_context(), // Minibrowser have the offscreen rendering context.
                     event_loop,
                     self.initial_url.clone(),
                 ));
@@ -109,7 +109,7 @@ impl App {
             None => headless_window::Window::new(&self.servoshell_preferences),
         };
 
-        self.windows.insert(window.id(), window);
+        self.windows.insert(window.id(), window); // should only have one windows.
 
         self.suspended.set(false);
         let (_, window) = self.windows.iter().next().unwrap();
@@ -184,8 +184,8 @@ impl App {
         let AppState::Running(state) = &self.state else {
             return;
         };
-
-        match state.pump_event_loop() {
+        println!("Each time handle an event from winit, we will spin the event loop of compositor.");
+        match state.pump_event_loop() { // Either trigger from compositor or minibrowser/
             PumpResult::Shutdown => {
                 state.shutdown();
                 self.state = AppState::ShuttingDown;
@@ -202,7 +202,7 @@ impl App {
                 // If in headed mode, request a winit redraw event, so we can paint the minibrowser.
                 if updated || need_window_redraw {
                     if let Some(window) = window.winit_window() {
-                        window.request_redraw();
+                        window.request_redraw(); // here will Queue a request redraw
                     }
                 }
             },
@@ -236,7 +236,7 @@ impl App {
                 state.shutdown();
                 self.state = AppState::ShuttingDown;
             },
-            PumpResult::Continue { .. } => state.repaint_servo_if_necessary(),
+            PumpResult::Continue { .. } => state.repaint_servo_if_necessary(), // repaint trigger here.
         }
 
         !matches!(self.state, AppState::ShuttingDown)
@@ -264,7 +264,7 @@ impl App {
                         break;
                     };
                     if let Some(focused_webview) = state.focused_webview() {
-                        focused_webview.load(url.into_url());
+                        focused_webview.load(url.into_url()); // the current Tab. will load the url.
                     }
                 },
                 MinibrowserEvent::Back => {
@@ -332,8 +332,10 @@ impl ApplicationHandler<WakerEvent> for App {
             // WARNING: do not defer painting or presenting to some later tick of the event
             // loop or servoshell may become unresponsive! (servo#30312)
             if let Some(ref mut minibrowser) = self.minibrowser {
+                // On redraw requested, render the frame that generated.
+                // Only if there are new frame ready, this event will be sent.
                 minibrowser.update(window.winit_window().unwrap(), state, "RedrawRequested");
-                minibrowser.paint(window.winit_window().unwrap());
+                minibrowser.paint(window.winit_window().unwrap()); // here is not the servo, but the header bar.
             }
         }
 
@@ -393,15 +395,15 @@ impl ApplicationHandler<WakerEvent> for App {
 
         // Block until the window gets an event
         if !animating || self.suspended.get() {
-            event_loop.set_control_flow(ControlFlow::Wait);
+            event_loop.set_control_flow(ControlFlow::Wait); // This is where we set the vsync.
         } else {
             event_loop.set_control_flow(ControlFlow::Poll);
         }
 
         // Consume and handle any events from the servoshell UI.
-        self.handle_servoshell_ui_events();
+        self.handle_servoshell_ui_events(); // whenever have a event, will handle it here.
 
-        self.handle_events_with_winit(event_loop, window);
+        self.handle_events_with_winit(event_loop, window); // 
     }
 
     fn user_event(&mut self, event_loop: &ActiveEventLoop, event: WakerEvent) {

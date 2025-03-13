@@ -78,6 +78,7 @@ use webrender_traits::CompositorHitTestResult;
 
 use super::bindings::codegen::Bindings::XPathEvaluatorBinding::XPathEvaluatorMethods;
 use super::clipboardevent::ClipboardEventType;
+use crate::image_animation::ImageAnimationManager;
 use crate::DomTypes;
 use crate::animation_timeline::AnimationTimeline;
 use crate::animations::Animations;
@@ -481,6 +482,8 @@ pub(crate) struct Document {
     animation_timeline: DomRefCell<AnimationTimeline>,
     /// Animations for this Document
     animations: DomRefCell<Animations>,
+    /// Image Animation Manager for this Document
+    image_animation_manager: DomRefCell<ImageAnimationManager>,
     /// The nearest inclusive ancestors to all the nodes that require a restyle.
     dirty_root: MutNullableDom<Element>,
     /// <https://html.spec.whatwg.org/multipage/#will-declaratively-refresh>
@@ -2399,7 +2402,7 @@ impl Document {
                 callback.call(self, *timing, can_gc);
             }
         }
-
+        // Spurious detection is inside the document.
         self.running_animation_callbacks.set(false);
         let callbacks_did_not_trigger_reflow = self.needs_reflow().is_none();
         let is_empty = self.animation_frame_list.borrow().is_empty();
@@ -2472,6 +2475,10 @@ impl Document {
                     AnimationState::AnimationCallbacksPresent,
                 ));
         }
+    }
+
+    pub(crate) fn check_image_animation(&self){
+
     }
 
     pub(crate) fn policy_container(&self) -> Ref<PolicyContainer> {
@@ -3742,6 +3749,7 @@ impl Document {
                 DomRefCell::new(AnimationTimeline::new())
             },
             animations: DomRefCell::new(Animations::new()),
+            image_animation_manager: DomRefCell::new(ImageAnimationManager::new()),
             dirty_root: Default::default(),
             declarative_refresh: Default::default(),
             pending_animation_ticks: Default::default(),
@@ -4550,6 +4558,10 @@ impl Document {
         // Steps 4 through 7 occur inside `send_pending_events().`
         let _realm = enter_realm(self);
         self.animations().send_pending_events(self.window(), can_gc);
+    }
+
+    pub(crate) fn image_animation(&self) -> Ref<ImageAnimationManager> {
+        self.image_animation_manager.borrow()
     }
 
     pub(crate) fn will_declaratively_refresh(&self) -> bool {

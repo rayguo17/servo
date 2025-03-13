@@ -12,6 +12,7 @@ pub mod wrapper_traits;
 
 use std::any::Any;
 use std::borrow::Cow;
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicIsize, AtomicU64, Ordering};
 
@@ -30,6 +31,9 @@ use libc::c_void;
 use malloc_size_of_derive::MallocSizeOf;
 use metrics::PaintTimeMetrics;
 use net_traits::image_cache::{ImageCache, PendingImageId};
+use net_traits::request::CorsSettings;
+use parking_lot::RwLock;
+use pixels::Image;
 use profile_traits::mem::Report;
 use profile_traits::time;
 use script_traits::{
@@ -437,6 +441,8 @@ pub struct ReflowRequest {
     pub animation_timeline_value: f64,
     /// The set of animations for this document.
     pub animations: DocumentAnimationSet,
+    /// The set of image animations.
+    pub image_animation_set: LayoutImageAnimateSet,
     /// The theme for the window
     pub theme: PrefersColorScheme,
 }
@@ -500,4 +506,47 @@ pub fn node_id_from_scroll_id(id: usize) -> Option<usize> {
         return Some(id & !3);
     }
     None
+}
+
+// What do we need during layout phase, to determine which 
+// Some Considerations: we want to handle these 
+#[derive(Debug)]
+pub struct ImageAnimateState { // Is it a good idea to store a Arc<Image> here?
+    pub image: Arc<Image>,
+    pub current_active_index: usize,
+}
+
+pub type ImageIdentifier = (ServoUrl, ImmutableOrigin, Option<CorsSettings>);
+
+#[derive(Debug)]
+pub struct LayoutImageAnimateSet {
+    pub node_to_image_key: Arc<RwLock<HashMap<OpaqueNode, ImageIdentifier>>>,
+    pub image_state: Arc<RwLock<HashMap<ImageIdentifier, ImageAnimateState>>>,
+}
+
+#[derive(Debug)]
+pub enum ImageAnimationAction{
+    Register(ImageAnimateRegisterItem),
+    Cancel(ImageAnimationCancelItem),
+}
+/*
+    During Layout Process, if we are able to get the fully loaded image for a <node, url>,
+    we should check whether we should register or cancel the animation for this image.
+    The cancel and register item could exist for the same node. or, if it is a replace, just have an register item.
+    Cancel Condition: (cancel should be triggered if any of below condition match)
+        -  the new image is not animated
+        -  the node containing the animated image does not exist anymore. TODO: Can take reference from animation, if the node is not in the fragment tree/ display_list (view port), we should just cancel the animation of it.
+    Register Condition:
+        -  the image is animated, and its <node, url> does not exist in ImageAnimationSet. (Could potentially be a replace)
+*/
+
+#[derive(Debug)]
+pub struct  ImageAnimationCancelItem { // aggregate try cancel item. // Cancel out image that does not have a node in fragment tree. (will not be display.)
+    pub node: OpaqueNode,
+}
+#[derive(Debug)]
+pub struct ImageAnimateRegisterItem {
+    pub node: OpaqueNode,
+    pub url: Option<ServoUrl>, // in what circumstances will it be None? 1. from image element; 2. from element background;
+    pub image: Arc<Image>, 
 }

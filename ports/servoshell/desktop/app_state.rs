@@ -107,8 +107,9 @@ impl RunningAppState {
     }
 
     pub(crate) fn new_toplevel_webview(self: &Rc<Self>, url: Url) {
-        let webview = self.servo().new_webview(url);
-        webview.set_delegate(self.clone());
+        let webview = self.servo().new_webview(url); // create a new webview.
+        webview.set_delegate(self.clone()); // delegate is actually runned by compositor????
+        // What does it means by delegate?
 
         webview.focus();
         webview.raise_to_top(true);
@@ -157,16 +158,16 @@ impl RunningAppState {
     /// painted or false otherwise. Something may not be painted if Servo is waiting
     /// for a stable image to paint.
     pub(crate) fn repaint_servo_if_necessary(&self) {
-        if !self.inner().need_repaint {
+        if !self.inner().need_repaint { // If the mini browser is not repainting, then 
             return;
         }
         let Some(webview) = self.focused_webview() else {
             return;
         };
-        if !webview.paint() {
+        if !webview.paint() { // The specific webview invoke the paint, but currently, the compositor does not know which document is being paint. (I believe Webrender will know which document is being paint from display list.)
             return;
-        }
-
+        } // A frame should have generated already???
+        //println!("Web view repaint!");
         // This needs to be done before presenting(), because `ReneringContext::read_to_image` reads
         // from the back buffer.
         self.save_output_image_if_necessary();
@@ -531,7 +532,7 @@ impl WebViewDelegate for RunningAppState {
     }
 
     fn notify_new_frame_ready(&self, _webview: servo::WebView) {
-        self.inner_mut().need_repaint = true;
+        self.inner_mut().need_repaint = true; // 
     }
 
     fn play_gamepad_haptic_effect(

@@ -564,7 +564,7 @@ impl LayoutThread {
         LayoutContext {
             id: self.id,
             origin: reflow_request.origin.clone(),
-            style_context: self.build_shared_style_context(
+            style_context: self.build_shared_style_context( // build style tree for animations?
                 guards,
                 snapshot_map,
                 reflow_request.animation_timeline_value,
@@ -609,7 +609,7 @@ impl LayoutThread {
     /// The high-level routine that performs layout.
     #[cfg_attr(
         feature = "tracing",
-        tracing::instrument(skip_all, fields(servo_profiling = true), level = "trace")
+        //tracing::instrument(skip_all, fields(servo_profiling = true), level = "trace")
     )]
     fn handle_reflow(&mut self, mut reflow_request: ReflowRequest) -> Option<ReflowResult> {
         let document = unsafe { ServoLayoutNode::new(&reflow_request.document) };
@@ -733,7 +733,7 @@ impl LayoutThread {
             let _span =
                 tracing::trace_span!("driver::traverse_dom", servo_profiling = true).entered();
             let dirty_root: ServoLayoutNode =
-                driver::traverse_dom(&traversal, token, rayon_pool).as_node();
+                driver::traverse_dom(&traversal, token, rayon_pool).as_node(); // incremental update?
 
             let root_node = root_element.as_node();
             let mut box_tree = self.box_tree.borrow_mut();
@@ -803,6 +803,7 @@ impl LayoutThread {
         self.first_reflow.set(false);
 
         if let ReflowGoal::UpdateScrollNode(scroll_state) = reflow_request.reflow_goal {
+            println!("From layout thread");
             self.update_scroll_node_state(&scroll_state);
         }
 
@@ -833,10 +834,11 @@ impl LayoutThread {
         reflow_goal: &ReflowGoal,
         context: &mut LayoutContext,
     ) {
-        Self::cancel_animations_for_nodes_not_in_fragment_tree(
+        Self::cancel_animations_for_nodes_not_in_fragment_tree( // By removing from fragment tree, it means not in the document. Simply scrolling will not trigger reflow.
             &context.style_context.animations,
             &fragment_tree,
         );
+        // Potential Cancel image animation for node that is not in the fragment tree. Can we reuse animations code?
 
         if !reflow_goal.needs_display_list() {
             return;

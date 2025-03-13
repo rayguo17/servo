@@ -27,7 +27,7 @@ use std::result::Result;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread;
-use std::time::{Duration, Instant, SystemTime};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use background_hang_monitor_api::{
     BackgroundHangMonitor, BackgroundHangMonitorExitSignal, HangAnnotation, MonitoredComponentId,
@@ -415,7 +415,7 @@ impl ScriptThreadFactory for ScriptThread {
                 let script_thread =
                     ScriptThread::new(state, layout_factory, system_font_service, user_agent);
 
-                SCRIPT_THREAD_ROOT.with(|root| {
+                SCRIPT_THREAD_ROOT.with(|root| { // Each thread have its own SCRIPT_THREAD_ROOT.
                     root.set(Some(&script_thread as *const _));
                 });
 
@@ -983,7 +983,7 @@ impl ScriptThread {
     /// messages on its port.
     pub(crate) fn start(&self, can_gc: CanGc) {
         debug!("Starting script thread.");
-        while self.handle_msgs(can_gc) {
+        while self.handle_msgs(can_gc) { // Script Thread will going through the message list.
             // Go on...
             debug!("Running script thread.");
         }
@@ -1150,15 +1150,24 @@ impl ScriptThread {
 
         // Run rafs for all pipeline, if a raf tick was received for any.
         // This ensures relative ordering of rafs between parent doc and iframes.
-        let should_run_rafs = self
+        let should_run_rafs = self // check raf callback
             .documents
             .borrow()
             .iter()
             .any(|(_, doc)| doc.is_fully_active() && doc.has_received_raf_tick());
 
+        // check CSS animations 
         let any_animations_running = self.documents.borrow().iter().any(|(_, document)| {
             document.is_fully_active() && document.animations().running_animation_count() != 0
         });
+
+        // should also have a Image Animation Checking;
+        let any_image_animation_running = self.documents.borrow().iter().any(|(_,document)|{
+            document.is_fully_active() && document.image_animation().has_running_image_animation()
+        });
+        // Now we want to kind of reuse update_the_rendering, (and since image_cache contains all image in the script thread.) 
+
+        // Reflow is for each document/ but display list?
 
         // TODO: The specification says to filter out non-renderable documents,
         // as well as those for which a rendering update would be unnecessary,
@@ -1167,9 +1176,11 @@ impl ScriptThread {
         // If we aren't explicitly running rAFs, this update wasn't requested by the compositor,
         // and we are running animations, then wait until the compositor tells us it is time to
         // update the rendering via a TickAllAnimations message.
-        if !requested_by_compositor && any_animations_running {
+        if !requested_by_compositor && any_animations_running { // here animation means CSS animation, this is the scenario, where update the rendering is triggered by script thread handling message, but it is possible that we donot any node dirty so we just when to wait for tick all animations message to update the content.
             return;
         }
+        // RAY: The idea should be :
+        // 1. Gather all the image that need to be updated. if the vec of the image need update is not empty, and no reflow is triggered, we just generate new_frame.  otherwise, we just reflow, and do not send generate new_frame. 
 
         // > 2. Let docs be all fully active Document objects whose relevant agent's event loop
         // > is eventLoop, sorted arbitrarily except that the following conditions must be
@@ -1240,7 +1251,8 @@ impl ScriptThread {
             // > in the relative high resolution time given frameTimestamp and doc's
             // > relevant global object as the timestamp.
             if should_run_rafs {
-                document.run_the_animation_frame_callbacks(can_gc);
+                println!("Update the Rendering: Run animation frame callback");
+                document.run_the_animation_frame_callbacks(can_gc); //
             }
 
             // Run the resize observer steps.
@@ -1269,16 +1281,24 @@ impl ScriptThread {
             #[cfg(feature = "webgpu")]
             document.update_rendering_of_webgpu_canvases();
 
+            // Document.update_the_image_animation();
+            // Get the list of image from above, update below:
+            // The question is 
+            //self.compositor_api.update_images(updates);
+
             // > Step 22: For each doc of docs, update the rendering or user interface of
             // > doc and its node navigable to reflect the current state.
             let window = document.window();
             if document.is_fully_active() {
-                window.reflow(ReflowGoal::UpdateTheRendering, can_gc);
+                window.reflow(ReflowGoal::UpdateTheRendering, can_gc); // should also consider sending a frame if the underlying image need update.
             }
 
             // TODO: Process top layer removals according to
             // https://drafts.csswg.org/css-position-4/#process-top-layer-removals.
         }
+
+
+        // We should update the image after the reflow, after the reflow, there will probably be some changes to the list of animated image.
 
         // Perform a microtask checkpoint as the specifications says that *update the rendering*
         // should be run in a task and a microtask checkpoint is always done when running tasks.
@@ -1303,18 +1323,22 @@ impl ScriptThread {
         if self.documents.borrow().iter().any(|(_, document)| {
             document.is_fully_active() &&
                 (document.animations().running_animation_count() != 0 ||
-                    document.has_active_request_animation_frame_callbacks())
+                    document.has_active_request_animation_frame_callbacks() || document.image_animation().has_running_image_animation())
         }) {
+            //println!("Have animation");
             return;
         }
-
-        let Some((_, document)) = self.documents.borrow().iter().find(|(_, document)| {
+        
+        let Some((_, document)) = self.documents.borrow().iter().find(|(_, document)| { // just need a document that need reflow we can update the rendering for thread.
             document.is_fully_active() &&
                 !document.window().layout_blocked() &&
-                document.needs_reflow().is_some()
+                document.needs_reflow().is_some() // RAF Will schedule the update the rendering by needs_reflow.
         }) else {
+            //println!("No need reflow");
             return;
         };
+
+        //println!("update_the_rendering_schedule!: {}",SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs_f64());
 
         // Queues a task to update the rendering.
         // <https://html.spec.whatwg.org/multipage/#event-loop-processing-model:queue-a-global-task>
@@ -1344,7 +1368,7 @@ impl ScriptThread {
         debug!("Waiting for event.");
         let mut event = self
             .receivers
-            .recv(&self.task_queue, &self.timer_scheduler.borrow());
+            .recv(&self.task_queue, &self.timer_scheduler.borrow()); // either from task_queue, or timer_scheduler.
 
         let mut compositor_requested_update_the_rendering = false;
         loop {
@@ -1383,7 +1407,7 @@ impl ScriptThread {
                                 MutableOrigin::new(new_layout_info.load_data.url.origin())
                             } else if let Some(parent) =
                                 new_layout_info.parent_info.and_then(|pipeline_id| {
-                                    self.documents.borrow().find_document(pipeline_id)
+                                    self.documents.borrow().find_document(pipeline_id) // could have multiple documents, including iframes.
                                 })
                             {
                                 parent.origin().clone()
@@ -1414,13 +1438,13 @@ impl ScriptThread {
                     .profile_event(ScriptThreadEventCategory::SetViewport, Some(id), || {
                         self.handle_viewport(id, rect);
                     }),
-                MixedMessage::FromConstellation(ScriptThreadMessage::TickAllAnimations(
+                MixedMessage::FromConstellation(ScriptThreadMessage::TickAllAnimations( // Compositor requested Run all possible update.
                     pipeline_id,
                     tick_type,
                 )) => {
                     if let Some(document) = self.documents.borrow().find_document(pipeline_id) {
                         document.note_pending_animation_tick(tick_type);
-                        compositor_requested_update_the_rendering = true;
+                        compositor_requested_update_the_rendering = true; // Potential Entry Point for handling Animations. Invoke by Constellation.
                     } else {
                         warn!(
                             "Trying to note pending animation tick for closed pipeline {}.",
@@ -1457,7 +1481,7 @@ impl ScriptThread {
             // If any of our input sources has an event pending, we'll perform another iteration
             // and check for more resize events. If there are no events pending, we'll move
             // on and execute the sequential non-resize events we've seen.
-            match self.receivers.try_recv(&self.task_queue) {
+            match self.receivers.try_recv(&self.task_queue) {  // handle event in the loop, turn it into message, that should be send
                 Some(new_event) => event = new_event,
                 None => break,
             }
@@ -1465,14 +1489,14 @@ impl ScriptThread {
 
         // Process the gathered events.
         debug!("Processing events.");
-        for msg in sequential {
-            debug!("Processing event {:?}.", msg);
+        for msg in sequential { //
+            debug!("Processing event {:?}.", msg); // Each message may have belongs to different pipeline.
             let category = self.categorize_msg(&msg);
             let pipeline_id = msg.pipeline_id();
             let _realm = pipeline_id.and_then(|id| {
                 let global = self.documents.borrow().find_global(id);
                 global.map(|global| enter_realm(&*global))
-            });
+            });// Different Document should have different pipeline, should have different js object that can be reference.
 
             if self.closing.load(Ordering::SeqCst) {
                 // If we've received the closed signal from the BHM, only handle exit messages.
@@ -1545,6 +1569,7 @@ impl ScriptThread {
         // Update the rendering whenever we receive an IPC message. This may not actually do anything if
         // we are running animations and the compositor hasn't requested a new frame yet via a TickAllAnimatons
         // message.
+        //println!("Script Thread receive IPC message: {}", SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs_f64());
         self.update_the_rendering(compositor_requested_update_the_rendering, can_gc);
 
         true

@@ -39,3 +39,4 @@ style = { workspace = true }
 style_traits = { workspace = true }
 webrender_api = { workspace = true }
 webrender_traits = { workspace = true }
+parking_lot = { workspace = true }

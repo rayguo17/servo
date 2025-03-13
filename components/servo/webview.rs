@@ -97,7 +97,7 @@ impl WebView {
         compositor: Rc<RefCell<IOCompositor>>,
     ) -> Self {
         let id = WebViewId::new();
-        compositor.borrow_mut().add_webview(id);
+        compositor.borrow_mut().add_webview(id); // Webview in Servo and in Compositor shared the same id.
         Self(Rc::new(RefCell::new(WebViewInner {
             id,
             constellation_proxy: constellation_proxy.clone(),

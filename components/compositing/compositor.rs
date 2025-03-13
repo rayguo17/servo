@@ -30,7 +30,7 @@ use fnv::FnvHashMap;
 use ipc_channel::ipc::{self, IpcSharedMemory};
 use libc::c_void;
 use log::{debug, info, trace, warn};
-use pixels::{CorsStatus, Image, PixelFormat};
+use pixels::{CorsStatus, Image, ImageFrame, PixelFormat};
 use profile_traits::time::{self as profile_time, ProfilerCategory};
 use profile_traits::time_profile;
 use script_traits::{
@@ -184,7 +184,7 @@ pub struct IOCompositor {
 }
 
 /// Why we need to be repainted. This is used for debugging.
-#[derive(Clone, Copy, Default)]
+#[derive(Clone, Copy, Default,Debug)]
 struct RepaintReason(u8);
 
 bitflags! {
@@ -220,6 +220,9 @@ pub(crate) struct PipelineDetails {
     /// Whether there are animation callbacks
     pub animation_callbacks_running: bool,
 
+    /// Whether there are image animation
+    pub image_animations_running: bool,
+
     /// Whether to use less resources by stopping animations.
     pub throttled: bool,
 
@@ -248,10 +251,11 @@ impl PipelineDetails {
         self.animation_callbacks_running
     }
 
-    pub(crate) fn tick_animations(&self, compositor: &IOCompositor) -> bool {
+    pub(crate) fn tick_animations(&self, compositor: &IOCompositor) -> bool { // Potentially do the update here.
         let animation_callbacks_running = self.animation_callbacks_running;
         let animations_running = self.animations_running;
-        if !animation_callbacks_running && !animations_running {
+        let image_animation_running = self.image_animations_running;
+        if !animation_callbacks_running && !animations_running && !image_animation_running { // Here will do the checking, if the document is not active, we don't runned it.
             return false;
         }
 
@@ -266,6 +270,10 @@ impl PipelineDetails {
         if animation_callbacks_running {
             tick_type.insert(AnimationTickType::REQUEST_ANIMATION_FRAME);
         }
+        
+        if image_animation_running {
+            tick_type.insert(AnimationTickType::IMAGE_ANIMATIONS);
+        } 
 
         let msg = ConstellationMsg::TickAnimation(self.id, tick_type);
         if let Err(e) = compositor.global.borrow().constellation_sender.send(msg) {
@@ -284,6 +292,7 @@ impl PipelineDetails {
             most_recent_display_list_epoch: None,
             animations_running: false,
             animation_callbacks_running: false,
+            image_animations_running: false,
             throttled: false,
             hit_test_items: Vec::new(),
             scroll_tree: ScrollTree::default(),
@@ -473,6 +482,9 @@ impl IOCompositor {
     }
 
     pub fn needs_repaint(&self) -> bool {
+        self.needs_repaint.get().into_iter().map(|r|{
+            println!("Repaint Reason: {:?}",r);
+        });
         !self.needs_repaint.get().is_empty()
     }
 
@@ -523,17 +535,18 @@ impl IOCompositor {
                     throttled =
                         webview.change_running_animations_state(pipeline_id, animation_state);
                 }
-
+                println!("In change running animations state.");
                 // These operations should eventually happen per-WebView, but they are global now as rendering
                 // is still global to all WebViews.
                 if !throttled && animation_state == AnimationState::AnimationsPresent {
-                    self.set_needs_repaint(RepaintReason::ChangedAnimationState);
+                    self.set_needs_repaint(RepaintReason::ChangedAnimationState); // Should try to repaint the 
                 }
 
-                if !throttled && animation_state == AnimationState::AnimationCallbacksPresent {
+                if !throttled && animation_state == AnimationState::AnimationCallbacksPresent { // this is when a document have register raf?
+                    println!("RAF register and handled in Compositor.");
                     // We need to fetch the WebView again in order to avoid a double borrow.
                     if let Some(webview) = self.webviews.get(webview_id) {
-                        webview.tick_animations_for_pipeline(pipeline_id, self);
+                        webview.tick_animations_for_pipeline(pipeline_id, self); // For RAF only rely on new_frame ready, to trigger the animation.
                     }
                 }
             },
@@ -604,12 +617,12 @@ impl IOCompositor {
                     let result = self
                         .global
                         .borrow()
-                        .hit_test_at_point(self.cursor_pos, details_for_pipeline);
+                        .hit_test_at_point(self.cursor_pos, details_for_pipeline); // check for hit,
                     if let Some(result) = result {
-                        self.global.borrow_mut().update_cursor(&result);
+                        self.global.borrow_mut().update_cursor(&result); // update cursor if hit.
                     }
                 }
-
+                println!("New WebRender Frame Ready.");
                 if recomposite_needed || self.animation_callbacks_running() {
                     self.set_needs_repaint(RepaintReason::NewWebRenderFrame);
                 }
@@ -661,11 +674,11 @@ impl IOCompositor {
     /// instance in the parent process.
     #[cfg_attr(
         feature = "tracing",
-        tracing::instrument(skip_all, fields(servo_profiling = true), level = "trace")
+        //tracing::instrument(skip_all, fields(servo_profiling = true), level = "trace")
     )]
     fn handle_cross_process_message(&mut self, msg: CrossProcessCompositorMessage) {
         match msg {
-            CrossProcessCompositorMessage::SendInitialTransaction(pipeline) => {
+            CrossProcessCompositorMessage::SendInitialTransaction(pipeline) => { // ??? Better check what this is for.
                 let mut txn = Transaction::new();
                 txn.set_display_list(WebRenderEpoch(0), (pipeline, Default::default()));
                 self.generate_frame(&mut txn, RenderReasons::SCENE);
@@ -707,7 +720,8 @@ impl IOCompositor {
                         generation: 0,
                     }],
                 );
-                self.generate_frame(&mut txn, RenderReasons::APZ);
+                println!("Handle scroll from compositor");
+                self.generate_frame(&mut txn, RenderReasons::APZ); // After scroll, will also update.
                 self.global.borrow_mut().send_transaction(txn);
             },
 
@@ -772,7 +786,7 @@ impl IOCompositor {
                 transaction
                     .set_display_list(display_list_info.epoch, (pipeline_id, built_display_list));
                 self.update_transaction_with_all_scroll_offsets(&mut transaction);
-                self.generate_frame(&mut transaction, RenderReasons::SCENE);
+                self.generate_frame(&mut transaction, RenderReasons::SCENE); // Trigger a generate frame.
                 self.global.borrow_mut().send_transaction(transaction);
             },
 
@@ -1275,15 +1289,15 @@ impl IOCompositor {
         let any_webviews_animating = !self
             .webviews
             .iter()
-            .all(|webview| !webview.tick_all_animations(self));
+            .all(|webview| !webview.tick_all_animations(self)); // try to tick all possible active webview.
 
         let animation_state = if !any_webviews_animating && !webxr_running {
             windowing::AnimationState::Idle
         } else {
             windowing::AnimationState::Animating
-        };
+        }; // So the Animated Image should also leads to animation.
 
-        self.window.set_animation_state(animation_state);
+        self.window.set_animation_state(animation_state); // whether to change state to poll.
     }
 
     fn hidpi_factor(&self) -> Scale<f32, DeviceIndependentPixel, DevicePixel> {
@@ -1411,14 +1425,14 @@ impl IOCompositor {
         if let Err(error) = self.render_inner() {
             warn!("Unable to render: {error:?}");
             return false;
-        }
+        } // Just by render again, does it work? no generate frame?
 
         // We've painted the default target, which means that from the embedder's perspective,
         // the scene no longer needs to be repainted.
         self.needs_repaint.set(RepaintReason::empty());
 
         // Queue up any subsequent paints for animations.
-        self.process_animations(true);
+        self.process_animations(true); // How to trigger animation tick on every vsync
 
         true
     }
@@ -1454,7 +1468,10 @@ impl IOCompositor {
                 width: image.width(),
                 height: image.height(),
                 format: PixelFormat::RGBA8,
-                bytes: ipc::IpcSharedMemory::from_bytes(&image),
+                frames: vec![ImageFrame{
+                    delay:None,
+                    bytes:ipc::IpcSharedMemory::from_bytes(&image)
+                }],
                 id: None,
                 cors_status: CorsStatus::Safe,
             }))
@@ -1462,7 +1479,7 @@ impl IOCompositor {
 
     #[cfg_attr(
         feature = "tracing",
-        tracing::instrument(skip_all, fields(servo_profiling = true), level = "trace")
+        //tracing::instrument(skip_all, fields(servo_profiling = true), level = "trace")
     )]
     fn render_inner(&mut self) -> Result<(), UnableToComposite> {
         if let Err(err) = self.rendering_context.make_current() {
@@ -1615,7 +1632,7 @@ impl IOCompositor {
     pub fn receive_messages(&mut self) {
         // Check for new messages coming from the other threads in the system.
         let mut compositor_messages = vec![];
-        let mut found_recomposite_msg = false;
+        let mut found_recomposite_msg = false; // Recomposite means, webrender can render
         while let Some(msg) = self
             .global
             .borrow_mut()
@@ -1626,17 +1643,17 @@ impl IOCompositor {
                 CompositorMsg::NewWebRenderFrameReady(..) if found_recomposite_msg => {
                     // Only take one of duplicate NewWebRendeFrameReady messages, but do subtract
                     // one frame from the pending frames.
-                    self.pending_frames -= 1;
+                    self.pending_frames -= 1; 
                 },
                 CompositorMsg::NewWebRenderFrameReady(..) => {
                     found_recomposite_msg = true;
-                    compositor_messages.push(msg)
+                    compositor_messages.push(msg)// there could be multiple frame ready messages, but we only take one.
                 },
                 _ => compositor_messages.push(msg),
             }
         }
         for msg in compositor_messages {
-            self.handle_browser_message(msg);
+            self.handle_browser_message(msg); // handle the new_frame_ready here.
 
             if self.global.borrow().shutdown_state() == ShutdownState::FinishedShuttingDown {
                 return;
@@ -1646,7 +1663,7 @@ impl IOCompositor {
 
     #[cfg_attr(
         feature = "tracing",
-        tracing::instrument(skip_all, fields(servo_profiling = true), level = "trace")
+        //tracing::instrument(skip_all, fields(servo_profiling = true), level = "trace")
     )]
     pub fn perform_updates(&mut self) -> bool {
         if self.global.borrow().shutdown_state() == ShutdownState::FinishedShuttingDown {
@@ -1672,8 +1689,9 @@ impl IOCompositor {
         }
         let mut webviews = take(&mut self.webviews);
         for webview in webviews.iter_mut() {
-            webview.process_pending_scroll_events(self);
+            webview.process_pending_scroll_events(self); // handle scroll. potentially generate frame.
         }
+        //  I think the image update probably should also be handle here.
         self.webviews = webviews;
         self.global.borrow().shutdown_state() != ShutdownState::FinishedShuttingDown
     }
