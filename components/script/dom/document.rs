@@ -35,6 +35,7 @@ use embedder_traits::{
 };
 use encoding_rs::{Encoding, UTF_8};
 use euclid::default::{Point2D, Rect, Size2D};
+use fxhash::FxHashMap;
 use html5ever::{LocalName, Namespace, QualName, local_name, ns};
 use hyper_serde::Serde;
 use ipc_channel::ipc;
@@ -54,7 +55,7 @@ use profile_traits::ipc as profile_ipc;
 use profile_traits::time::TimerMetadataFrameType;
 use regex::bytes::Regex;
 use script_bindings::interfaces::DocumentHelpers;
-use script_layout_interface::{PendingRestyle, TrustedNodeAddress};
+use script_layout_interface::{ImageAnimationState, PendingRestyle, TrustedNodeAddress};
 use script_traits::{ConstellationInputEvent, DocumentActivity, ProgressiveWebMetricType};
 use servo_arc::Arc;
 use servo_config::pref;
@@ -62,6 +63,7 @@ use servo_media::{ClientContextId, ServoMedia};
 use servo_url::{ImmutableOrigin, MutableOrigin, ServoUrl};
 use style::attr::AttrValue;
 use style::context::QuirksMode;
+use style::dom::OpaqueNode;
 use style::invalidation::element::restyle_hints::RestyleHint;
 use style::selector_parser::Snapshot;
 use style::shared_lock::SharedRwLock as StyleSharedRwLock;
@@ -5005,10 +5007,22 @@ impl Document {
         self.animations.borrow()
     }
 
-    pub(crate) fn update_animations_post_reflow(&self) {
+    /// Update both the CSS animations and the image animations.
+    /// This is called after a reflow, when the animation state may have changed.
+    pub(crate) fn update_animations_post_reflow(
+        &self,
+        map: FxHashMap<OpaqueNode, ImageAnimationState>,
+    ) {
+        // Update the CSS animation state.
         self.animations
             .borrow()
             .do_post_reflow_update(&self.window, self.current_animation_timeline_value());
+        // Update the image animation state.
+        self.image_animation_manager
+            .borrow_mut()
+            .update_image_animations_post_reflow(map);
+        // Change Animation State.
+        self.send_running_animation_state_message_to_constellation();
     }
 
     pub(crate) fn cancel_animations_for_node(&self, node: &Node) {
@@ -5041,7 +5055,24 @@ impl Document {
 
         // Steps 4 through 7 occur inside `send_pending_events().`
         let _realm = enter_realm(self);
-        self.animations().send_pending_events(self.window(), can_gc);
+        self.animations().send_pending_events(can_gc);
+
+        self.send_running_animation_state_message_to_constellation();
+    }
+
+    fn send_running_animation_state_message_to_constellation(&self) {
+        let image_animations_present = self
+            .image_animation_manager
+            .borrow()
+            .image_animations_present();
+        let css_animations_present = self.animations.borrow().animations_present();
+        let state = match css_animations_present || image_animations_present {
+            true => AnimationState::AnimationsPresent,
+            false => AnimationState::NoAnimationsPresent,
+        };
+        self.window().send_to_constellation(
+            ScriptToConstellationMessage::ChangeRunningAnimationsState(state),
+        );
     }
 
     pub(crate) fn image_animation_manager(&self) -> Ref<ImageAnimationManager> {

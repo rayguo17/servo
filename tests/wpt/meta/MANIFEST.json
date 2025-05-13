@@ -352999,6 +352999,19 @@
          {}
         ]
        ],
+       "animated-image-update.tentative.html": [
+        "6875188ad1698155b7690ccdcbc3478fff4fff1c",
+        [
+         null,
+         [
+          [
+           "/html/semantics/embedded-content/the-img-element/animated-image-update-ref.tentative.html",
+           "=="
+          ]
+         ],
+         {}
+        ]
+       ],
        "available-images.html": [
         "779ff978689e4f5565b8d45d383efa75ac78b8b2",
         [
@@ -480545,6 +480558,10 @@
         "28d0ead2dbc3f9db5e7c2714cc72434b4bc367a2",
         []
        ],
+       "animated-image-update-ref.tentative.html": [
+        "f2d7fb6cff15f2a87144330249bbdc2698fad550",
+        []
+       ],
        "available-images-ref.html": [
         "8061abae50899a2befe286723d8bd5c285b356ab",
         []
@@ -480622,6 +480639,10 @@
         ]
        },
        "resources": {
+        "animated.gif": [
+         "7694add55e0c98ec3ee5d9110e5fb16b4d819137",
+         []
+        ],
         "blue-10.png": [
          "62949e08d87dfcdc0987eaef67692c7a1c16aa50",
          []

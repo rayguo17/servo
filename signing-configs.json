@@ -1,0 +1,15 @@
+[
+    {
+        "name": "hos",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "/home/rayguo/workSpace/harmonyWorkSpace/config/default_RustBinding_f5_vngdBKNmYFJ5iZftErYxMTpMqXoFJSaFEoi1KCA4=.cer",
+          "storePassword": "0000001BB8CF419D4FA558FA0BA160A036C8083F740AFD5FCE4B1FC3B6426459C29986DF0B6045DDE845B0",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001B84E820A72925166E75960AB2BAEA171FD7A98DB847814DF7EDC7A46CDB0B25413FC7B1DE07CCDC",
+          "profile": "/home/rayguo/workSpace/harmonyWorkSpace/config/default_RustBinding_f5_vngdBKNmYFJ5iZftErYxMTpMqXoFJSaFEoi1KCA4=.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "/home/rayguo/workSpace/harmonyWorkSpace/config/default_RustBinding_f5_vngdBKNmYFJ5iZftErYxMTpMqXoFJSaFEoi1KCA4=.p12"
+        }
+    }
+]
