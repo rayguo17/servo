@@ -1,0 +1,55 @@
+{
+  "app": {
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "/home/rayguo/workSpace/servo_signing_config/file_transfer/ohos_servo_signing_new/default_servo_app.cer",
+          "storePassword": "0000001AC3D3E13BFB973AE00462E8A64E4EB2D1092E3623E885D77DB26104B70BB1AB209D5044636A8C",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001A0042B57FD763FB1E949C75709E75D7E3F5C6104CBA95E8E478605C401A5676A2EC817D46CF5C",
+          "profile": "/home/rayguo/workSpace/servo_signing_config/file_transfer/ohos_servo_signing_new/default_servo_app.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "/home/rayguo/workSpace/servo_signing_config/file_transfer/ohos_servo_signing_new/default_servo_app.p12"
+        }
+      }
+    ],
+    "products": [
+      {
+        "name": "default",
+        "signingConfig": "default",
+        "compatibleSdkVersion": "5.0.1(13)",
+        "runtimeOS": "HarmonyOS",
+        "buildOption": {
+          "strictMode": {
+            "caseSensitiveCheck": true,
+            "useNormalizedOHMUrl": true
+          }
+        }
+      }
+    ],
+    "buildModeSet": [
+      {
+        "name": "debug",
+      },
+      {
+        "name": "release"
+      }
+    ]
+  },
+  "modules": [
+    {
+      "name": "entry",
+      "srcPath": "./entry",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
+    }
+  ]
+}

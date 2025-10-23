@@ -182,9 +182,9 @@ fn construct_for_root_element(
         // The root element is blockified, ignore DisplayOutside
         Display::GeneratingBox(display_generating_box) => display_generating_box.display_inside(),
     };
-
+    log::info!("Getting content!");
     let contents = Contents::for_element(root_element, context);
-
+    log::info!("Get content done!");
     let propagated_data = PropagatedBoxTreeData::default();
     let root_box = if box_style.position.is_absolutely_positioned() {
         BlockLevelBox::OutOfFlowAbsolutelyPositionedBox(ArcRefCell::new(
@@ -410,8 +410,9 @@ impl<'dom> IncrementalBoxTreeUpdate<'dom> {
     #[servo_tracing::instrument(name = "Box Tree Update From Dirty Root", skip_all)]
     fn update_from_dirty_root(&self, context: &LayoutContext) {
         let node = self.node.to_threadsafe();
+        log::info!("Getting content");
         let contents = Contents::for_element(node, context);
-
+        log::info!("Get Content Done!");
         let info =
             NodeAndStyleInfo::new(node, self.primary_style.clone(), node.take_restyle_damage());
 

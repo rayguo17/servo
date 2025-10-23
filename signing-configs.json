@@ -1,0 +1,28 @@
+[
+  {
+    "name": "default",
+    "type": "HarmonyOS",
+    "material": {
+      "certpath": "/home/rayguo/workSpace/harmonyWorkSpace/config/default_RustBinding_f5_vngdBKNmYFJ5iZftErYxMTpMqXoFJSaFEoi1KCA4=.cer",
+      "storePassword": "0000001B27246562E3FB787445F5290BE069C4ABB6CF3C024A0D765F4754FAB20C4F32EAB74AB608BEBB8C",
+      "keyAlias": "debugKey",
+      "keyPassword": "0000001B055F5B1B4890EAE9B83BEAD8B07CD3DEB2D39E79A05744352B9892878A4F2A2CFE2A96043513C6",
+      "profile": "/home/rayguo/workSpace/harmonyWorkSpace/config/default_RustBinding_f5_vngdBKNmYFJ5iZftErYxMTpMqXoFJSaFEoi1KCA4=.p7b",
+      "signAlg": "SHA256withECDSA",
+      "storeFile": "/home/rayguo/workSpace/harmonyWorkSpace/config/default_RustBinding_f5_vngdBKNmYFJ5iZftErYxMTpMqXoFJSaFEoi1KCA4=.p12"
+    }
+  },
+{
+    "name": "hos",
+    "type": "HarmonyOS",
+    "material": {
+      "certpath": "/home/rayguo/workSpace/harmonyWorkSpace/config/default_RustBinding_f5_vngdBKNmYFJ5iZftErYxMTpMqXoFJSaFEoi1KCA4=.cer",
+      "storePassword": "0000001B27246562E3FB787445F5290BE069C4ABB6CF3C024A0D765F4754FAB20C4F32EAB74AB608BEBB8C",
+      "keyAlias": "debugKey",
+      "keyPassword": "0000001B055F5B1B4890EAE9B83BEAD8B07CD3DEB2D39E79A05744352B9892878A4F2A2CFE2A96043513C6",
+      "profile": "/home/rayguo/workSpace/harmonyWorkSpace/config/default_RustBinding_f5_vngdBKNmYFJ5iZftErYxMTpMqXoFJSaFEoi1KCA4=.p7b",
+      "signAlg": "SHA256withECDSA",
+      "storeFile": "/home/rayguo/workSpace/harmonyWorkSpace/config/default_RustBinding_f5_vngdBKNmYFJ5iZftErYxMTpMqXoFJSaFEoi1KCA4=.p12"
+    }
+}
+]

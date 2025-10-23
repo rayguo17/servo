@@ -16,6 +16,7 @@ use super::OutsideMarker;
 use super::inline::construct::InlineFormattingContextBuilder;
 use super::inline::inline_box::InlineBox;
 use super::inline::{InlineFormattingContext, SharedInlineStyles};
+use crate::replaced::ReplacedContentKind;
 use crate::PropagatedBoxTreeData;
 use crate::cell::ArcRefCell;
 use crate::context::LayoutContext;
@@ -446,16 +447,45 @@ impl<'dom> BlockContainerBuilder<'dom, '_> {
         box_slot: BoxSlot<'dom>,
     ) {
         let old_layout_box = box_slot.take_layout_box_if_undamaged(info.damage);
+        // Should accept non_replaced or replaced_content(video)
         let (is_list_item, non_replaced_contents) = match (display_inside, contents) {
             (
                 DisplayInside::Flow { is_list_item },
                 Contents::NonReplaced(non_replaced_contents),
             ) => (is_list_item, non_replaced_contents),
+            (_, Contents::Replaced(replaced_content)) if 
+                matches!(replaced_content.kind,ReplacedContentKind::Video(..))
+             => {
+                let contents = Contents::Replaced(replaced_content);
+                let context = self.context;
+                let propagated_data = self.propagated_data;
+                log::info!("Inline element return here!");
+                // Should set a exception for video element here!
+                let construction_callback = || {
+                    ArcRefCell::new(IndependentFormattingContext::construct(
+                        context,
+                        info,
+                        display_inside,
+                        contents,
+                        propagated_data,
+                    ))
+                };
+                
+                let atomic = self
+                    .ensure_inline_formatting_context_builder()
+                    .push_atomic(construction_callback, old_layout_box);
+                
+                
+
+                box_slot.set(LayoutBox::InlineLevel(vec![atomic]));
+                return;
+            },
             (_, contents) => {
                 // If this inline element is an atomic, handle it and return.
                 let context = self.context;
                 let propagated_data = self.propagated_data;
-
+                log::info!("Inline element return here!");
+                // Should set a exception for video element here!
                 let construction_callback = || {
                     ArcRefCell::new(IndependentFormattingContext::construct(
                         context,
@@ -489,7 +519,7 @@ impl<'dom> BlockContainerBuilder<'dom, '_> {
                 self.handle_list_item_marker_inside(&marker_info, marker_contents)
             }
         }
-
+        log::info!("For Non Replaced! Are we traversing down here?");
         // `unwrap` doesn’t panic here because `is_replaced` returned `false`.
         non_replaced_contents.traverse(self.context, info, self);
 
