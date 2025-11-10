@@ -597,6 +597,7 @@ impl ComputedValuesExt for ComputedValues {
         // From <https://www.w3.org/TR/css-overflow-4/#overflow-control>:
         // "On replaced elements, the used values of all computed values other than visible is clip."
         if fragment_flags.contains(FragmentFlags::IS_REPLACED) {
+            log::error!("Replaced element overflow forced to clip: {:?}", overflow);
             if overflow.x != Overflow::Visible {
                 overflow.x = Overflow::Clip;
             }

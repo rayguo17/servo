@@ -174,20 +174,23 @@ fn traverse_element<'dom>(
             if ReplacedContents::for_element(element, context).is_some() {
                 // `display: content` on a replaced element computes to `display: none`
                 // <https://drafts.csswg.org/css-display-3/#valdef-display-contents>
-                element.unset_all_boxes()
+                element.unset_all_boxes();
+                println!("Is Replaced Contents, not traversing below!");
             } else {
                 let shared_inline_styles: SharedInlineStyles = (&info).into();
                 element
                     .box_slot()
                     .set(LayoutBox::DisplayContents(shared_inline_styles.clone()));
-
+                println!("Is not replaced contents, traversing children!");
                 handler.enter_display_contents(shared_inline_styles);
                 traverse_children_of(&info, context, handler);
                 handler.leave_display_contents();
             }
         },
         Display::GeneratingBox(display) => {
+            log::info!("Getting contents");
             let contents = Contents::for_element(element, context);
+            log::info!("Get Contents done!");
             let display = display.used_value_for_contents(&contents);
             let box_slot = element.box_slot();
             handler.handle_element(&info, display, contents, box_slot);
@@ -281,7 +284,9 @@ impl Contents {
         node: ServoThreadSafeLayoutNode<'_>,
         context: &LayoutContext,
     ) -> Self {
+        
         if let Some(replaced) = ReplacedContents::for_element(node, context) {
+            // TODO: Potentially should check whether have control widget here.
             return Self::Replaced(replaced);
         }
         // TODO(#39927): <select> should also be a widget.
@@ -294,6 +299,7 @@ impl Contents {
         if is_widget {
             Self::Widget(NonReplacedContents::OfElement)
         } else {
+            log::error!("Not replaced item and not widget: returning self!");
             Self::NonReplaced(NonReplacedContents::OfElement)
         }
     }

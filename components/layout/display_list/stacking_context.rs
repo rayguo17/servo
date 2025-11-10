@@ -1193,6 +1193,7 @@ impl BoxFragment {
                 false, /* is_collapsed_table_borders */
             ),
         ) {
+            log::error!("Clip store add for clip path");
             new_clip_id = clip_id;
         }
 
@@ -1393,6 +1394,7 @@ impl BoxFragment {
             .for_border_rect(border_rect)
             .translate(containing_block_rect.origin.to_vector())
             .to_webrender();
+        log::error!("Clip store add for clip property");
         Some(stacking_context_tree.clip_store.add(
             BorderRadius::zero(),
             clip_rect,
@@ -1444,7 +1446,7 @@ impl BoxFragment {
                 overflow_clip_rect.max.y = f32::MAX;
                 radii = BorderRadius::zero();
             }
-
+            log::error!("Clip store add for ComputedOverflow::Clip, current fragment: {:?}", self.base);
             let clip_id = stacking_context_tree.clip_store.add(
                 radii,
                 overflow_clip_rect,
@@ -1462,7 +1464,7 @@ impl BoxFragment {
             .padding_rect()
             .translate(containing_block_rect.origin.to_vector())
             .to_webrender();
-
+        log::error!("Clip store add for scrollable overflow");
         let clip_id = stacking_context_tree.clip_store.add(
             BuilderForBoxFragment::new(self, containing_block_rect, false, false).border_radius,
             scroll_frame_rect,

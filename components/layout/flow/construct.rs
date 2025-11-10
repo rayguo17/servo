@@ -16,6 +16,7 @@ use super::OutsideMarker;
 use super::inline::construct::InlineFormattingContextBuilder;
 use super::inline::inline_box::InlineBox;
 use super::inline::{InlineFormattingContext, SharedInlineStyles};
+use crate::replaced::ReplacedContentKind;
 use crate::PropagatedBoxTreeData;
 use crate::cell::ArcRefCell;
 use crate::context::LayoutContext;
@@ -47,6 +48,11 @@ impl BlockFormattingContext {
             propagated_data,
             is_list_item,
         ))
+    }
+
+    pub(crate) fn construct_with_extra_replace_content(context: &LayoutContext, info: &NodeAndStyleInfo, contents: NonReplacedContents, propagated_data: PropagatedBoxTreeData, is_list_item: bool, prebuilt_box: BlockLevelBox)->Self{
+        let contents = BlockContainer::with_prebuilt_replaced_content(context, info, contents, propagated_data, is_list_item, prebuilt_box);
+        Self::from_block_container(contents)
     }
 
     pub(crate) fn from_block_container(contents: BlockContainer) -> Self {
@@ -185,6 +191,26 @@ impl BlockContainer {
 
         contents.traverse(context, info, &mut builder);
         builder.finish()
+    }
+
+    pub fn with_prebuilt_replaced_content(
+        context: &LayoutContext,
+        info: &NodeAndStyleInfo<'_>,
+        contents: NonReplacedContents,
+        propagated_data: PropagatedBoxTreeData,
+        is_list_item: bool,
+        replaced_content: BlockLevelBox,
+    ) -> BlockContainer {
+        let block_container = Self::construct(context, info, contents, propagated_data, is_list_item);
+        match block_container {
+            BlockContainer::BlockLevelBoxes(mut boxes)=>{
+                boxes.push(ArcRefCell::new(replaced_content));
+                return BlockContainer::BlockLevelBoxes(boxes);
+            },
+            _=>{
+                todo!()
+            }
+        }
     }
 }
 
@@ -446,16 +472,43 @@ impl<'dom> BlockContainerBuilder<'dom, '_> {
         box_slot: BoxSlot<'dom>,
     ) {
         let old_layout_box = box_slot.take_layout_box_if_undamaged(info.damage);
+        // Should accept non_replaced or replaced_content(video)
         let (is_list_item, non_replaced_contents) = match (display_inside, contents) {
             (
                 DisplayInside::Flow { is_list_item },
                 Contents::NonReplaced(non_replaced_contents),
             ) => (is_list_item, non_replaced_contents),
+            (_, Contents::Replaced(replaced_content)) if 
+                matches!(replaced_content.kind,ReplacedContentKind::Video(..))
+             => {
+                let contents = Contents::Replaced(replaced_content);
+                let context = self.context;
+                let propagated_data = self.propagated_data;
+                log::info!("Inline element return here!");
+                // Should set a exception for video element here!
+                let construction_callback = || {
+                    ArcRefCell::new(IndependentFormattingContext::construct(
+                        context,
+                        info,
+                        display_inside,
+                        contents,
+                        propagated_data,
+                    ))
+                };
+                
+                let atomic = self
+                    .ensure_inline_formatting_context_builder()
+                    .push_atomic(construction_callback, old_layout_box);
+
+                box_slot.set(LayoutBox::InlineLevel(vec![atomic]));
+                return;
+            },
             (_, contents) => {
                 // If this inline element is an atomic, handle it and return.
                 let context = self.context;
                 let propagated_data = self.propagated_data;
-
+                log::info!("Inline element return here!");
+                // Should set a exception for video element here!
                 let construction_callback = || {
                     ArcRefCell::new(IndependentFormattingContext::construct(
                         context,
@@ -489,7 +542,7 @@ impl<'dom> BlockContainerBuilder<'dom, '_> {
                 self.handle_list_item_marker_inside(&marker_info, marker_contents)
             }
         }
-
+        log::info!("For Non Replaced! Are we traversing down here?");
         // `unwrap` doesn’t panic here because `is_replaced` returned `false`.
         non_replaced_contents.traverse(self.context, info, self);
 

@@ -197,6 +197,7 @@ impl DisplayListBuilder<'_> {
         builder.add_all_spatial_nodes();
 
         for clip in stacking_context_tree.clip_store.0.iter() {
+            log::error!("adding clip to display list from stacking context tree clip store!");
             builder.add_clip_to_display_list(clip);
         }
 
@@ -377,7 +378,7 @@ impl DisplayListBuilder<'_> {
         if radii.is_zero() && !force_clip_creation {
             return None;
         }
-
+        println!("maybe create_clip add clipRect to display list!");
         Some(self.add_clip_to_display_list(&Clip {
             id: ClipId(self.clip_map.len()),
             radii,
@@ -1054,6 +1055,8 @@ impl<'a> BuilderForBoxFragment<'a> {
         self.build_background(builder);
         self.build_box_shadow(builder);
         self.build_border(builder);
+        // TODO: should have a build Image Item At the bottom layer here.
+
     }
 
     fn build_hit_test(&self, builder: &mut DisplayListBuilder, rect: LayoutRect) {
@@ -1141,6 +1144,14 @@ impl<'a> BuilderForBoxFragment<'a> {
             positioning_area_override: None,
         };
         self.build_background_for_painter(builder, &painter);
+    }
+
+    fn build_video_surface(
+        &mut self,
+        builder: &mut DisplayListBuilder,
+        painter: &BackgroundPainter,
+    ) {
+
     }
 
     fn build_background_image(

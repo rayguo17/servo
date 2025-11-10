@@ -2399,9 +2399,10 @@ impl HTMLMediaElement {
 
     fn render_controls(&self, can_gc: CanGc) {
         let element = self.htmlelement.upcast::<Element>();
-        if self.ready_state.get() < ReadyState::HaveMetadata || element.is_shadow_host() {
+        if element.is_shadow_host() {
             // Bail out if we have no metadata yet or
             // if we are already showing the controls.
+
             return;
         }
         // FIXME(stevennovaryo): Recheck styling of media element to avoid
@@ -2409,6 +2410,7 @@ impl HTMLMediaElement {
         let shadow_root = self
             .upcast::<Element>()
             .attach_ua_shadow_root(false, can_gc);
+        println!("Attach ua shadow root!");
         let document = self.owner_document();
         let script = Element::create(
             QualName::new(None, ns!(html), local_name!("script")),
@@ -3051,6 +3053,7 @@ impl VirtualMethods for HTMLMediaElement {
             },
             local_name!("controls") => {
                 if mutation.new_value(attr).is_some() {
+                    println!("Render Controls!");
                     self.render_controls(can_gc);
                 } else {
                     self.remove_controls();

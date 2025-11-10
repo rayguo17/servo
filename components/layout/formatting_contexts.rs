@@ -12,9 +12,9 @@ use style::properties::ComputedValues;
 use style::selector_parser::PseudoElement;
 
 use crate::context::LayoutContext;
-use crate::dom_traversal::{Contents, NodeAndStyleInfo};
+use crate::dom_traversal::{Contents, NodeAndStyleInfo, NonReplacedContents};
 use crate::flexbox::FlexContainer;
-use crate::flow::BlockFormattingContext;
+use crate::flow::{BlockFormattingContext, BlockLevelBox};
 use crate::fragment_tree::{BaseFragmentInfo, FragmentFlags};
 use crate::layout_box_base::{
     CacheableLayoutResult, CacheableLayoutResultAndInputs, LayoutBoxBase,
@@ -67,6 +67,9 @@ impl Baselines {
     }
 }
 
+use layout_api::wrapper_traits::ThreadSafeLayoutNode;
+use layout_api::wrapper_traits::ThreadSafeLayoutElement;
+
 impl IndependentFormattingContext {
     pub(crate) fn new(base: LayoutBoxBase, contents: IndependentFormattingContextContents) -> Self {
         Self { base, contents }
@@ -80,10 +83,36 @@ impl IndependentFormattingContext {
         propagated_data: PropagatedBoxTreeData,
     ) -> Self {
         let mut base_fragment_info: BaseFragmentInfo = node_and_style_info.into();
-
+        println!("Constructing IndependentFormatting Context for node: {:?}", node_and_style_info.node);
         let non_replaced_contents = match contents {
             Contents::Replaced(contents) => {
                 base_fragment_info.flags.insert(FragmentFlags::IS_REPLACED);
+                if let Some(element) = node_and_style_info.node.as_element() {
+                    if let Some(shadow_root) =  element.shadow_root() {
+                        if shadow_root.is_ua_widget() {
+                            // This would happend in the case of video tag having control widget!
+                            log::error!("Video tag with controls should go here!");
+                            let non_contents = match display_inside {
+                                DisplayInside::Flow { is_list_item }=>{
+                                
+                                    let video_context = Self{
+                                        base: LayoutBoxBase::new(base_fragment_info.clone(), node_and_style_info.style.clone()),
+                                        contents: IndependentFormattingContextContents::Replaced(contents)
+                                    };
+                                    let video_block = BlockLevelBox::Independent(video_context);
+                                    IndependentFormattingContextContents::Flow(BlockFormattingContext::construct_with_extra_replace_content(context, node_and_style_info, NonReplacedContents::OfElement, propagated_data, is_list_item,video_block))
+                                },
+                                _=>{
+                                    todo!()
+                                }
+                            };
+                            return Self {
+                                base: LayoutBoxBase::new(base_fragment_info, node_and_style_info.style.clone()),
+                                contents: non_contents
+                            };
+                        }
+                    }
+                }
                 return Self {
                     base: LayoutBoxBase::new(base_fragment_info, node_and_style_info.style.clone()),
                     contents: IndependentFormattingContextContents::Replaced(contents),
