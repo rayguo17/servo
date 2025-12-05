@@ -1691,6 +1691,14 @@ impl Element {
         }
     }
 
+    // https://drafts.csswg.org/css-display-4/#root-element
+    pub(crate) fn css_root_element(&self) -> DomRoot<Element> {
+        self.upcast::<Node>()
+            .owner_doc()
+            .GetDocumentElement()
+            .expect("Document must have a document element")
+    }
+
     // https://dom.spec.whatwg.org/#locate-a-namespace-prefix
     pub(crate) fn lookup_prefix(&self, namespace: Namespace) -> Option<DOMString> {
         for node in self
@@ -2660,7 +2668,7 @@ impl Element {
         };
 
         // Step 7
-        if *self.root_element() == *self {
+        if *self.css_root_element() == *self {
             if doc.quirks_mode() != QuirksMode::Quirks {
                 win.scroll(x, y, behavior);
             }
@@ -3278,7 +3286,7 @@ impl ElementMethods<crate::DomTypeHolder> for Element {
         };
 
         // Step 5
-        if *self.root_element() == *self {
+        if *self.css_root_element() == *self {
             if doc.quirks_mode() == QuirksMode::Quirks {
                 return 0.0;
             }
@@ -3330,7 +3338,7 @@ impl ElementMethods<crate::DomTypeHolder> for Element {
         };
 
         // Step 7
-        if *self.root_element() == *self {
+        if *self.css_root_element() == *self {
             if doc.quirks_mode() != QuirksMode::Quirks {
                 win.scroll(win.ScrollX() as f32, y, behavior);
             }
@@ -3375,7 +3383,7 @@ impl ElementMethods<crate::DomTypeHolder> for Element {
         };
 
         // Step 5
-        if *self.root_element() == *self {
+        if *self.css_root_element() == *self {
             if doc.quirks_mode() != QuirksMode::Quirks {
                 // Step 6
                 return win.ScrollX() as f64;
@@ -3426,7 +3434,7 @@ impl ElementMethods<crate::DomTypeHolder> for Element {
         };
 
         // Step 7
-        if *self.root_element() == *self {
+        if *self.css_root_element() == *self {
             if doc.quirks_mode() == QuirksMode::Quirks {
                 return;
             }
@@ -4983,7 +4991,7 @@ impl Element {
         let in_quirks_mode = doc.quirks_mode() == QuirksMode::Quirks;
 
         if (in_quirks_mode && doc.GetBody().as_deref() == self.downcast::<HTMLElement>()) ||
-            (!in_quirks_mode && *self.root_element() == *self)
+            (!in_quirks_mode && *self.css_root_element() == *self)
         {
             let viewport_dimensions = doc.window().viewport_details().size.round().to_i32();
             rect.size = Size2D::<i32>::new(viewport_dimensions.width, viewport_dimensions.height);
