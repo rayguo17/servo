@@ -1696,26 +1696,26 @@ impl BoxFragment {
         // all sides, but they will have no effect if the corresponding inset property is `auto`.
         let vertical_offset_bounds = wr::StickyOffsetBounds::new(
             -offset_bound(
-                distance_from_border_box_to_cb.top,
-                self.margin.top,
-                computed_margin.top,
-            ),
-            offset_bound(
                 distance_from_border_box_to_cb.bottom,
                 self.margin.bottom,
                 computed_margin.bottom,
             ),
+            offset_bound(
+                distance_from_border_box_to_cb.top,
+                self.margin.top,
+                computed_margin.top,
+            )
         );
         let horizontal_offset_bounds = wr::StickyOffsetBounds::new(
             -offset_bound(
-                distance_from_border_box_to_cb.left,
-                self.margin.left,
-                computed_margin.left,
-            ),
-            offset_bound(
                 distance_from_border_box_to_cb.right,
                 self.margin.right,
                 computed_margin.right,
+            ),
+            offset_bound(
+                distance_from_border_box_to_cb.left,
+                self.margin.left,
+                computed_margin.left,
             ),
         );
 
