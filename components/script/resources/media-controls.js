@@ -39,16 +39,28 @@
 
   function generateMarkup(isAudioOnly) {
     return `
-      <div class="controls">
-        <button id="play-pause-button"></button>
-        <input id="progress" type="range" value="0" min="0" max="100" step="1"></input>
-        <span id="position-duration-box" class="hidden">
-          <span id="position-text">#1</span>
-          <span id="duration"> / #2</span>
-        </span>
-        <button id="volume-switch"></button>
-        <input id="volume-level" type="range" value="100" min="0" max="100" step="1"></input>
-        ${isAudioOnly ? "" : '<button id="fullscreen-switch" class="fullscreen"></button>'}
+      <div class="controls two-row">
+        <div class="row1">
+          <div class="left">
+            <button id="play-pause-button"></button>
+            <span id="position-duration-box" class="hidden">
+              <span id="position-text">#1</span>
+              <span id="duration"> / #2</span>
+            </span>
+          </div>
+
+          <div class="right">
+            <div class="volume">
+              <button id="volume-switch"></button>
+              <input id="volume-level" type="range" value="100" min="0" max="100" step="1"></input>
+            </div>
+            ${isAudioOnly ? "" : '<button id="fullscreen-switch" class="fullscreen"></button>'}
+          </div>
+        </div>
+
+        <div class="row2">
+          <input id="progress" type="range" value="0" min="0" max="100" step="1"></input>
+        </div>
       </div>
     `;
   }
@@ -83,6 +95,7 @@
       this.controls = document.servoGetMediaControls("@@@id@@@");
       // Get the instance of the host of these controls.
       this.media = this.controls.host;
+      this.hideTimer = null;
 
       this.mutationObserver = new MutationObserver(() => {
         // We can only get here if the `controls` attribute is removed.
@@ -99,6 +112,19 @@
       this.root.classList.add("root");
       this.root.innerHTML = generateMarkup(this.isAudioOnly);
       this.controls.appendChild(this.root);
+
+      this.controlsElement = this.root.querySelector(".controls");
+      if (!this.controlsElement) {
+        throw new Error("Missing .controls element");
+      }
+
+      // Debug: log geometry after layout.
+      this.logGeometrySoon();
+
+      // Make the media focusable so tabbing can reveal controls.
+      if (!this.media.hasAttribute("tabindex")) {
+        this.media.setAttribute("tabindex", "0");
+      }
 
 
       const elementNames = [
@@ -203,6 +229,19 @@
         el.addEventListener(type, this);
       });
 
+      // Activity listeners for showing and auto-hiding controls while playing.
+      this.activityEvents = [
+        "mousemove",
+        "mouseenter",
+        "pointerdown",
+        "touchstart",
+        "focus",
+        "focusin",
+      ];
+      this.activityEvents.forEach(type => {
+        this.media.addEventListener(type, this, { passive: true });
+      });
+
       // Create state transitions.
       //
       // It exposes one method per transition. i.e. this.pause(), this.play(), etc.
@@ -239,6 +278,38 @@
       this.onStateChange(null);
     }
 
+    logGeometrySoon() {
+      const log = () => {
+        const entries = [];
+        const add = (label, el) => {
+          if (!el) return;
+          const r = el.getBoundingClientRect();
+          entries.push({
+            label,
+            x: Math.round(r.x),
+            y: Math.round(r.y),
+            w: Math.round(r.width),
+            h: Math.round(r.height),
+          });
+        };
+
+        add("media", this.media);
+        add("root", this.root);
+        add("controls", this.controlsElement);
+        add("playPauseButton", this.elements?.playPauseButton);
+        add("positionDurationBox", this.elements?.positionDurationBox);
+        add("progress", this.elements?.progress);
+        add("volumeSwitch", this.elements?.volumeSwitch);
+        add("volumeLevel", this.elements?.volumeLevel);
+        add("fullscreenSwitch", this.elements?.fullscreenSwitch);
+
+        console.log("[media-controls geometry]", entries);
+      };
+
+      // Wait for at least one layout pass.
+      requestAnimationFrame(() => requestAnimationFrame(log));
+    }
+
     cleanup() {
       this.mutationObserver.disconnect();
       this.mediaEvents.forEach(event => {
@@ -247,6 +318,43 @@
       this.controlEvents.forEach(({ el, type }) => {
         el.removeEventListener(type, this);
       });
+      this.activityEvents.forEach(type => {
+        this.media.removeEventListener(type, this);
+      });
+      this.clearAutoHideTimer();
+    }
+
+    clearAutoHideTimer() {
+      if (this.hideTimer) {
+        clearTimeout(this.hideTimer);
+        this.hideTimer = null;
+      }
+    }
+
+    showControls() {
+      this.controlsElement.classList.remove("controls-hidden");
+    }
+
+    hideControls() {
+      this.controlsElement.classList.add("controls-hidden");
+    }
+
+    scheduleAutoHide() {
+      this.clearAutoHideTimer();
+      if (this.state !== PLAYING) {
+        this.showControls();
+        return;
+      }
+      this.hideTimer = setTimeout(() => {
+        if (this.state === PLAYING) {
+          this.hideControls();
+        }
+      }, 3000);
+    }
+
+    bumpActivity() {
+      this.showControls();
+      this.scheduleAutoHide();
     }
 
     // State change handler
@@ -295,6 +403,8 @@
       if (this.elements.volumeLevel.value != volumeLevelValue) {
         this.elements.volumeLevel.value = volumeLevelValue;
       }
+
+      this.scheduleAutoHide();
     }
 
     handleEvent(event) {
@@ -305,6 +415,8 @@
 
       if (this.mediaEvents.includes(event.type)) {
         this.onMediaEvent(event);
+      } else if (this.activityEvents.includes(event.type)) {
+        this.bumpActivity();
       } else {
         this.onControlEvent(event);
       }
@@ -313,6 +425,7 @@
     onControlEvent(event) {
       switch (event.type) {
         case "click":
+          this.bumpActivity();
           switch (event.currentTarget) {
             case this.elements.playPauseButton:
               this.playOrPause();
@@ -326,6 +439,7 @@
           }
           break;
         case "input":
+          this.bumpActivity();
           switch (event.currentTarget) {
             case this.elements.volumeLevel:
               this.changeVolume();

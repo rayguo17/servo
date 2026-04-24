@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en" data-kind="audio">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Servo media controls clone (audio)</title>
+    <link rel="stylesheet" href="./shared/media-controls.css" />
+    <link rel="stylesheet" href="./shared/page.css" />
+  </head>
+  <body>
+    <div class="page">
+      <p class="hint">
+        Style-clone for Servo’s built-in media controls (audio mode). Click buttons to toggle states.
+        Keyboard: <span class="kbd">Space</span> play/pause, <span class="kbd">M</span> mute.
+      </p>
+
+      <div class="stage stage-audio" aria-label="Mock audio surface">
+        <div class="mock-video">
+          <div class="mock-video-label">Mock audio surface</div>
+        </div>
+
+        <div class="controls-host">
+          <div class="root">
+            <div class="controls">
+              <button id="play-pause-button"></button>
+              <input id="progress" type="range" value="0" min="0" max="100" step="1" />
+              <span id="position-duration-box" class="hidden">
+                <span id="position-text">#1</span>
+                <span id="duration"> / #2</span>
+              </span>
+              <button id="volume-switch"></button>
+              <input id="volume-level" type="range" value="100" min="0" max="100" step="1" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="./shared/harness.js"></script>
+  </body>
+</html>
+

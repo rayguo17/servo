@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en" data-kind="video">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Servo media controls clone (video)</title>
+    <link rel="stylesheet" href="./shared/media-controls.css" />
+    <link rel="stylesheet" href="./shared/page.css" />
+  </head>
+  <body>
+    <div class="page">
+      <p class="hint">
+        Style-clone for Servo’s built-in media controls. Click buttons to toggle states.
+        Keyboard: <span class="kbd">Space</span> play/pause, <span class="kbd">M</span> mute.
+      </p>
+
+      <div class="stage" aria-label="Mock video surface">
+        <div class="mock-video">
+          <div class="mock-video-label">Mock video surface</div>
+        </div>
+
+        <div class="controls-host">
+          <div class="root">
+            <div class="controls two-row">
+              <div class="row1">
+                <div class="left">
+                  <button id="play-pause-button"></button>
+                  <span id="position-duration-box" class="hidden">
+                    <span id="position-text">#1</span>
+                    <span id="duration"> / #2</span>
+                  </span>
+                </div>
+
+                <div class="right">
+                  <div class="volume">
+                    <button id="volume-switch"></button>
+                    <input
+                      id="volume-level"
+                      type="range"
+                      value="100"
+                      min="0"
+                      max="100"
+                      step="1"
+                    />
+                  </div>
+                  <button id="fullscreen-switch" class="fullscreen"></button>
+                </div>
+              </div>
+
+              <div class="row2">
+                <input id="progress" type="range" value="0" min="0" max="100" step="1" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="./shared/harness.js"></script>
+  </body>
+</html>
+

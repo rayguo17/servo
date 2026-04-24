@@ -24,14 +24,12 @@ button {
   position: absolute;
   bottom: 0;
   width: 100%;
-  height: auto;
-  min-height: 40px;
+  height: 40px;
   background-color: rgba(26,26,26,.8);
   color: #ffffff;
   opacity: 1;
   transition: opacity 180ms ease, transform 180ms ease;
   transform: translateY(0);
-  pointer-events: auto;
 }
 
 .controls.controls-hidden {
@@ -90,7 +88,10 @@ button {
   background-repeat: no-repeat;
 }
 
+/* --- Clone iteration: beautified 2-row layout (video) --- */
+
 .controls.two-row {
+  height: auto;
   padding: 6px 8px 8px;
   box-sizing: border-box;
   display: flex;

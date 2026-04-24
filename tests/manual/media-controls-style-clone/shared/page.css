@@ -1,0 +1,91 @@
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: #0f1115;
+  color: #e6e6e6;
+}
+
+.page {
+  max-width: 1100px;
+  padding: 24px;
+  margin: 0 auto;
+}
+
+.hint {
+  opacity: 0.8;
+  line-height: 1.4;
+  margin: 0 0 16px;
+}
+
+.stage {
+  width: min(900px, 100%);
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #222a36, #101521);
+  position: relative;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+}
+
+.stage::after {
+  content: "";
+  display: block;
+  padding-top: 56.25%; /* 16:9 */
+}
+
+.stage.stage-audio::after {
+  padding-top: 33.3333%; /* 3:1 */
+}
+
+.stage > * {
+  position: absolute;
+  inset: 0;
+}
+
+.stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(600px 200px at 50% 30%, rgba(255, 255, 255, 0.08), transparent 60%),
+    radial-gradient(400px 220px at 70% 70%, rgba(0, 180, 255, 0.08), transparent 60%);
+  pointer-events: none;
+}
+
+.mock-video {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  user-select: none;
+}
+
+.mock-video-label {
+  font-size: 14px;
+  opacity: 0.7;
+  letter-spacing: 0.02em;
+}
+
+.controls-host {
+  position: absolute;
+  inset: 0;
+}
+
+.controls-host .root {
+  height: 100%;
+  width: 100%;
+}
+
+.kbd {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
