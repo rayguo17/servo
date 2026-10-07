@@ -511,15 +511,24 @@ impl IndependentFormattingContext {
                 containing_block_for_children,
             )
         {
+            println!(
+                "[IndependentFormattingContext::layout cache hit] fragment={:?} block_size={:?}",
+                self.base_fragment_info(),
+                cached_layout_result.content_block_size,
+            );
             return (cached_layout_result, true);
         }
-
         #[cfg(feature = "tracing")]
         tracing::debug!(
             name: "IndependentFormattingContext::layout cache miss",
             required = ?containing_block_for_children.size,
         );
         let mut child_positioning_context = PositioningContext::default();
+        println!(
+            "[IndependentFormattingContext::layout start] fragment={:?} children_containing_block={:?}",
+            self.base_fragment_info(),
+            containing_block_for_children.size,
+        );
         let result = self.layout_without_caching(
             layout_context,
             &mut child_positioning_context,
@@ -527,6 +536,10 @@ impl IndependentFormattingContext {
             containing_block,
             preferred_aspect_ratio,
             lazy_block_size,
+        );
+        println!(
+            "[IndependentFormattingContext::layout end] fragment={:?}",
+            self.base_fragment_info(),
         );
         self.base.cache_independent_formatting_context_layout(
             containing_block_for_children,

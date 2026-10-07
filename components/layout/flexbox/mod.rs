@@ -3,6 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 use geom::{FlexAxis, MainStartCrossStart};
+use layout_api::{LayoutElement, LayoutNode};
 use malloc_size_of_derive::MallocSizeOf;
 use script::layout_dom::ServoLayoutNode;
 use servo_arc::Arc as ServoArc;
@@ -14,6 +15,7 @@ use style::properties::longhands::flex_direction::computed_value::T as FlexDirec
 use style::properties::longhands::flex_wrap::computed_value::T as FlexWrap;
 use style::values::computed::ContentDistribution;
 use style::values::specified::align::AlignFlags;
+use web_atoms::{local_name, ns};
 
 use crate::PropagatedBoxTreeData;
 use crate::cell::ArcRefCell;
@@ -108,6 +110,14 @@ impl FlexContainer {
         contents: NonReplacedContents,
         propagated_data: PropagatedBoxTreeData,
     ) -> Self {
+        if let Some(element) = info.node.as_element() && let Some(class_list) =  element.attribute_as_str(&ns!(), &local_name!("class")) && class_list.contains("enrichment-status")   {
+            println!(
+                "[FlexContainer::construct found enrichment-status element] element={:?} min_block_size={:?} max_block_size={:?}",
+                element,
+                info.style.min_block_size(),
+                info.style.max_block_size(),
+            )
+        }
         let mut builder = ModernContainerBuilder::new(context, info, propagated_data);
         contents.traverse(context, info, &mut builder);
         let items = builder.finish();

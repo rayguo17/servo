@@ -621,6 +621,11 @@ impl FlexContainer {
         containing_block: &ContainingBlock,
         lazy_block_size: &LazySize,
     ) -> IndependentFormattingContextLayoutResult {
+        // let uuid = uuid::Uuid::new_v4();
+        // println!(
+        //     "[FlexContainer::layout containing block size] container={} inline={:?} block={:?}",
+        //     uuid, containing_block.size.inline, containing_block.size.block
+        // );
         let mut flex_context = FlexContext {
             config: self.config.clone(),
             layout_context,
@@ -646,6 +651,10 @@ impl FlexContainer {
                     .max_content
             }),
         };
+        // println!(
+        //     "[FlexContainer::layout container main size] container={} container_main_size={:?}",
+        //     uuid, container_main_size
+        // );
 
         // Actual length may be less, but we guess that usually not by a lot
         let mut flex_items = Vec::with_capacity(self.children.len());
@@ -678,6 +687,7 @@ impl FlexContainer {
             })
             .collect::<Vec<_>>();
         let flex_item_boxes = flex_items.iter().map(|child| &**child);
+        // println!("[FlexContainer::layout creating FlexItems] container={}", uuid);
         let flex_items = flex_item_boxes
             .map(|flex_item_box| FlexItem::new(&flex_context, flex_item_box))
             .collect::<Vec<_>>();
@@ -713,6 +723,7 @@ impl FlexContainer {
 
         // “Resolve the flexible lengths of all the flex items to find their *used main size*.”
         // https://drafts.csswg.org/css-flexbox/#algo-flex
+        // println!("[FlexContainer::layout initial flex line layout] container={}", uuid);
         let initial_line_layouts = do_initial_flex_line_layout(
             &mut flex_context,
             container_main_size,
@@ -741,7 +752,10 @@ impl FlexContainer {
             main: container_main_size,
             cross: container_cross_size,
         };
-
+        // println!(
+        //     "[FlexContainer::layout container cross size] container_cross_size={:?} content_cross_size={:?} flex_axis={:?}",
+        //     container_cross_size, content_cross_size, self.config.flex_axis
+        // );
         let mut remaining_free_cross_space = container_cross_size - content_cross_size;
 
         // Implement fallback alignment.
@@ -823,6 +837,10 @@ impl FlexContainer {
                 // We call `allocate_free_cross_space_for_flex_line` for each line to avoid having
                 // leftover space when the number of lines doesn't evenly divide the total free space,
                 // considering the precision of app units.
+                // println!(
+                //     "[FlexContainer::layout align content] resolved_align_content={:?} remaining_free_cross_space={:?} remaining_index={}",
+                //     resolved_align_content, remaining_free_cross_space, (num_lines - index) as i32
+                // );
                 let (space_to_add_to_line, space_to_add_after_line) =
                     allocate_free_cross_space_for_flex_line(
                         resolved_align_content,
@@ -833,6 +851,10 @@ impl FlexContainer {
 
                 let final_line_cross_size =
                     initial_line_layout.line_size.cross + space_to_add_to_line;
+                // println!(
+                //     "[FlexContainer::layout line cross size allocation] line_cross_size={:?} space_to_add_to_line={:?}",
+                //     initial_line_layout.line_size.cross, space_to_add_to_line
+                // );
                 let mut final_line_layout = initial_line_layout.finish_with_final_cross_size(
                     &mut flex_context,
                     main_gap,
@@ -1266,6 +1288,7 @@ impl InitialFlexLineLayout<'_> {
 
         // https://drafts.csswg.org/css-flexbox/#algo-cross-line
         let line_cross_size = Self::cross_size(&items, flex_context);
+        // println!("[InitialFlexLineLayout line cross size] line_cross_size={:?}", line_cross_size);
         let line_size = FlexRelativeVec2 {
             main: container_main_size,
             cross: line_cross_size,
@@ -2126,6 +2149,21 @@ impl FlexItem<'_> {
         wrap_reverse: bool,
     ) -> Au {
         let ending_alignment = line_cross_size - *used_cross_size - self.pbm_auto_is_zero.cross;
+            // if self.box_.independent_formatting_context.base.base_fragment_info.is_anonymous() {
+            //     println!(
+            //         "[flex-align anonymous item] tag={:?} align={:?} line_cross_size={:?} used_cross_size={:?} pbm_cross={:?} margin_cross_start_auto={} margin_cross_end_auto={} ending_alignment={:?}",
+            //         self.box_.independent_formatting_context.base.base_fragment_info.tag,
+            //         self.align_self.0.value(),
+            //         line_cross_size,
+            //         used_cross_size,
+            //         self.pbm_auto_is_zero.cross,
+            //         self.margin.cross_start.is_auto(),
+            //         self.margin.cross_end.is_auto(),
+            //         ending_alignment,
+            //     );
+            // }
+
+
         let outer_cross_start =
             if self.margin.cross_start.is_auto() || self.margin.cross_end.is_auto() {
                 Au::zero()
@@ -2226,6 +2264,8 @@ impl FlexItemBox {
         config: &FlexContainerConfig,
         flex_context_getter: &impl Fn() -> &'a FlexContext<'a>,
     ) -> FlexItem<'_> {
+        let uuid = uuid::Uuid::new_v4();
+        // println!("FlexItemBox::to_flex_item[{:?}], tag: [{:?}], flex_axis: {:?}, content_box_sizes: {:?}", uuid,self.base_fragment_info(), config.flex_axis, content_box_sizes_and_pbm.content_box_sizes);
         let flex_axis = config.flex_axis;
         let style = self.style();
         let cross_axis_is_item_block_axis = cross_axis_is_item_block_axis(
@@ -2358,6 +2398,10 @@ impl FlexItemBox {
             // > it has a preferred aspect ratio) and the flex item’s cross size is auto and not definite,
             // > in this calculation use fit-content as the flex item’s cross size. The flex base size is
             // > the item’s resulting main size.
+            // println!(
+            //     "[FlexItemBox::to_flex_item[{:?}] cross axis is item block axis] cross_axis_is_item_block_axis={:?}",
+            //     uuid,cross_axis_is_item_block_axis
+            // );
             if cross_axis_is_item_block_axis {
                 // The main axis is the inline axis, so we can get the content size from the normal
                 // preferred widths calculation.
@@ -2396,11 +2440,10 @@ impl FlexItemBox {
             )
             .resolve_for_preferred(Size::MaxContent, stretch_size.main, &main_content_sizes);
         let flex_base_size_is_definite = flex_base_size_is_definite.take();
-
+        // println!("[{:?}] main_content_size: {:?}", uuid,main_content_sizes);
         let content_max_main_size = content_main_sizes
             .max
             .resolve_for_max(stretch_size.main, &main_content_sizes);
-
         let get_automatic_minimum_size = || {
             // This is an implementation of <https://drafts.csswg.org/css-flexbox/#min-size-auto>.
             if style.establishes_scroll_container(self.base_fragment_info().flags) {
@@ -2447,7 +2490,7 @@ impl FlexItemBox {
             &main_content_sizes,
             is_table,
         );
-
+        // println!("[{:?}] content_max_main_size: {:?}, content_min_main_size: {:?}",uuid, content_max_main_size, content_min_main_size);
         FlexItem {
             box_: self,
             content_cross_sizes: content_cross_sizes.clone(),
@@ -2722,6 +2765,13 @@ impl FlexItemBox {
                 },
                 style,
             };
+            
+            //  println!(
+            //      "[FlexItemBox::layout_in_flow_block_children] item={:?} content_size={:?}, content_box_sizes: {:?}",
+            //      self.base_fragment_info(),
+            //      item_as_containing_block.size,
+            //      content_box_sizes
+            //  );
             self.independent_formatting_context
                 .layout(
                     flex_context.layout_context,

@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-use layout_api::LayoutNode;
+use layout_api::{LayoutElement, LayoutNode};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use servo_arc::Arc;
 use style::properties::ComputedValues;
@@ -10,6 +10,7 @@ use style::properties::longhands::list_style_position::computed_value::T as List
 use style::selector_parser::PseudoElement;
 use style::str::char_is_whitespace;
 use style::values::specified::box_::DisplayOutside as StyloDisplayOutside;
+use web_atoms::{local_name, ns};
 
 use super::OutsideMarker;
 use super::inline::construct::InlineFormattingContextBuilder;
@@ -399,6 +400,12 @@ impl<'dom> TraversalHandler<'dom> for BlockContainerBuilder<'dom, '_> {
         contents: Contents,
         box_slot: BoxSlot<'dom>,
     ) {
+        if let Some(element) = info.node.as_element() && let Some(class_list) =  element.attribute_as_str(&ns!(), &local_name!("class")) && class_list.contains("enrichment-status")   {
+            println!(
+                "[BlockContainerBuilder found enrichment-status element] element={:?}",
+                element,
+            );
+        }
         match display {
             DisplayGeneratingBox::OutsideInside { outside, inside } => {
                 self.finish_anonymous_table_if_needed();

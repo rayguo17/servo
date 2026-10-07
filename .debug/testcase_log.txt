@@ -1,0 +1,43 @@
+Found the element!: ServoLayoutElement { element: <span> (0x2032b4c0f380), pseudo_element_chain: PseudoElementChain { primary: None, secondary: None } }
+min block: LengthPercentage(NonNegative(Length(30.0 px))), max block: None
+cached layout result null
+Cached layout not hit for : BaseFragmentInfo { tag: Some(Tag(OpaqueNode(35402152997240))), flags: FragmentFlags(IS_ROOT_ELEMENT) }
+Start layout: BaseFragmentInfo { tag: Some(Tag(OpaqueNode(35402152997240))), flags: FragmentFlags(IS_ROOT_ELEMENT) }, children_containing_block: ContainingBlockSize { inline: 1024px, block: MinMax(0px, None) }
+cached layout result null
+Cached layout not hit for : BaseFragmentInfo { tag: Some(Tag(OpaqueNode(35402152997680))), flags: FragmentFlags(0x0) }
+Start layout: BaseFragmentInfo { tag: Some(Tag(OpaqueNode(35402152997680))), flags: FragmentFlags(0x0) }, children_containing_block: ContainingBlockSize { inline: 1008px, block: MinMax(230px, None) }
+FlexContainer[0fae4977-7224-409b-8256-77bac8a17c40] Containing block size: inline: 1008px, block: MinMax(230px, None)
+layout for block, item: BaseFragmentInfo { tag: Some(Tag(OpaqueNode(35402152997760))), flags: FragmentFlags(0x0) }, content size: ContainingBlockSize { inline: 24px, block: MinMax(0px, None) }
+cached layout result null
+Cached layout not hit for : BaseFragmentInfo { tag: Some(Tag(OpaqueNode(35402152997760))), flags: FragmentFlags(0x0) }
+Start layout: BaseFragmentInfo { tag: Some(Tag(OpaqueNode(35402152997760))), flags: FragmentFlags(0x0) }, children_containing_block: ContainingBlockSize { inline: 24px, block: MinMax(0px, None) }
+FlexContainer[da64d6b1-fb1b-4f62-8e35-599c27774647] Containing block size: inline: 24px, block: MinMax(0px, None)
+FlexContainer[da64d6b1-fb1b-4f62-8e35-599c27774647] layout for new FlexItem
+FlexContainer[da64d6b1-fb1b-4f62-8e35-599c27774647] doing do_initial_flex_line_layout
+Lazy_block_size is not determined! content_cross_size: Sizes { preferred: Initial, min: Initial, max: Initial }, stretch size: None
+cached layout result null
+Cached layout not hit for : BaseFragmentInfo { tag: None, flags: FragmentFlags(0x0) }
+Start layout: BaseFragmentInfo { tag: None, flags: FragmentFlags(0x0) }, children_containing_block: ContainingBlockSize { inline: 24px, block: MinMax(0px, None) }
+End Layout: BaseFragmentInfo { tag: None, flags: FragmentFlags(0x0) }
+Flexline cross size: container_inner_size_constraint.cross: MinMax(0px, None)
+flex line cross_size: 10px
+Container cross size: 10px, content cross size: 10px, flex_axis: Row
+resolved_align_content: AlignFlags(2), remaining_free_cross_space: 0px, remaining_index: 1
+initial_line_layout.line_size.cross: 10px, space_to_add_to_line: 0px
+[flex-align] tag=None is_anonymous=true align=AlignFlags(6) line_cross=10px used_cross=10px pbm=  0px margin_auto=(false,false) ending=0px
+End Layout: BaseFragmentInfo { tag: Some(Tag(OpaqueNode(35402152997760))), flags: FragmentFlags(0x0) }
+layout for block, item: BaseFragmentInfo { tag: Some(Tag(OpaqueNode(35402152997760))), flags: FragmentFlags(0x0) }, content size: ContainingBlockSize { inline: 24px, block: MinMax(0px, None) }
+Cached layout is hit for BaseFragmentInfo { tag: Some(Tag(OpaqueNode(35402152997760))), flags: FragmentFlags(0x0) }: block_size 10px
+FlexContainer[0fae4977-7224-409b-8256-77bac8a17c40] layout for new FlexItem
+layout for block, item: BaseFragmentInfo { tag: Some(Tag(OpaqueNode(35402152997760))), flags: FragmentFlags(0x0) }, content size: ContainingBlockSize { inline: 24px, block: MinMax(0px, None) }
+Cached layout is hit for BaseFragmentInfo { tag: Some(Tag(OpaqueNode(35402152997760))), flags: FragmentFlags(0x0) }: block_size 10px
+FlexContainer[0fae4977-7224-409b-8256-77bac8a17c40] doing do_initial_flex_line_layout
+Lazy_block_size is used_main_size: 28px
+Cached layout is hit for BaseFragmentInfo { tag: Some(Tag(OpaqueNode(35402152997760))), flags: FragmentFlags(0x0) }: block_size 10px
+Flexline cross size: container_inner_size_constraint.cross: Definite(1008px)
+flex line cross_size: 1008px
+Container cross size: 1008px, content cross size: 1008px, flex_axis: Column
+resolved_align_content: AlignFlags(2), remaining_free_cross_space: 0px, remaining_index: 1
+initial_line_layout.line_size.cross: 1008px, space_to_add_to_line: 0px
+End Layout: BaseFragmentInfo { tag: Some(Tag(OpaqueNode(35402152997680))), flags: FragmentFlags(0x0) }
+End Layout: BaseFragmentInfo { tag: Some(Tag(OpaqueNode(35402152997240))), flags: FragmentFlags(IS_ROOT_ELEMENT) }

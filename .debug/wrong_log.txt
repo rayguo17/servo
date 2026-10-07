@@ -1,0 +1,61 @@
+Flexline cross size: container_inner_size_constraint.cross: Definite(484px)
+flex line cross_size: 484px
+Container cross size: 484px, content cross size: 484px, flex_axis: Column
+resolved_align_content: AlignFlags(2), remaining_free_cross_space: 0px, remaining_index: 1
+initial_line_layout.line_size.cross: 484px, space_to_add_to_line: 0px
+Found the element!: ServoLayoutElement { element: <span> (0x289c241dd128), pseudo_element_chain: PseudoElementChain { primary: None, secondary: None } }
+min block: LengthPercentage(NonNegative(Length(25.0 px))), max block: None
+Containing block size: inline: 484px, block: MinMax(0px, None)
+layout for block content size: ContainingBlockSize { inline: 440px, block: MinMax(0px, None) }
+layout for block content size: ContainingBlockSize { inline: 440px, block: MinMax(0px, None) }
+layout for block content size: ContainingBlockSize { inline: 484px, block: MinMax(0px, None) }
+Containing block size: inline: 190px, block: MinMax(0px, None)
+layout for block content size: ContainingBlockSize { inline: 190px, block: MinMax(0px, None) }
+layout for block content size: ContainingBlockSize { inline: 190px, block: MinMax(0px, None) }
+layout for block content size: ContainingBlockSize { inline: 160px, block: MinMax(0px, None) }
+Containing block size: inline: 160px, block: MinMax(0px, None)
+layout for block content size: ContainingBlockSize { inline: 160px, block: MinMax(0px, None) }
+layout for block content size: ContainingBlockSize { inline: 160px, block: MinMax(0px, None) }
+layout for block content size: ContainingBlockSize { inline: 160px, block: MinMax(0px, None) }
+layout for block content size: ContainingBlockSize { inline: 160px, block: MinMax(0px, None) }
+layout for block content size: ContainingBlockSize { inline: 71.4px, block: MinMax(0px, None) }
+Containing block size: inline: 71.4px, block: MinMax(0px, None)
+Flexline cross size: container_inner_size_constraint.cross: MinMax(0px, None)
+flex line cross_size: 10px
+Container cross size: 10px, content cross size: 10px, flex_axis: Row
+resolved_align_content: AlignFlags(2), remaining_free_cross_space: 0px, remaining_index: 1
+initial_line_layout.line_size.cross: 10px, space_to_add_to_line: 0px
+[flex-align] tag=None is_anonymous=true align=AlignFlags(6) line_cross=10px used_cross=10px pbm=  0px margin_auto=(false,false) ending=0px
+layout for block content size: ContainingBlockSize { inline: 71.4px, block: MinMax(0px, None) }
+layout for block content size: ContainingBlockSize { inline: 160px, block: MinMax(0px, None) }
+layout for block content size: ContainingBlockSize { inline: 160px, block: MinMax(0px, None) }
+layout for block content size: ContainingBlockSize { inline: 160px, block: MinMax(0px, None) }
+layout for block content size: ContainingBlockSize { inline: 160px, block: MinMax(0px, None) }
+layout for block content size: ContainingBlockSize { inline: 160px, block: MinMax(0px, None) }
+layout for block content size: ContainingBlockSize { inline: 160px, block: MinMax(0px, None) }
+layout for block content size: ContainingBlockSize { inline: 160px, block: MinMax(0px, None) }
+layout for block content size: ContainingBlockSize { inline: 160px, block: MinMax(0px, None) }
+layout for block content size: ContainingBlockSize { inline: 160px, block: MinMax(0px, None) }
+layout for block content size: ContainingBlockSize { inline: 160px, block: MinMax(0px, None) }
+layout for block content size: ContainingBlockSize { inline: 71.4px, block: MinMax(0px, None) }
+layout for block content size: ContainingBlockSize { inline: 160px, block: MinMax(0px, None) }
+layout for block content size: ContainingBlockSize { inline: 160px, block: MinMax(0px, None) }
+layout for block content size: ContainingBlockSize { inline: 160px, block: MinMax(0px, None) }
+layout for block content size: ContainingBlockSize { inline: 160px, block: MinMax(0px, None) }
+Containing block size: inline: 169.2px, block: MinMax(0px, None)
+Flexline cross size: container_inner_size_constraint.cross: MinMax(0px, None)
+flex line cross_size: 50.03333333333333px
+Container cross size: 72.03333333333333px, content cross size: 50.03333333333333px, flex_axis: Row
+resolved_align_content: AlignFlags(11), remaining_free_cross_space: 22px, remaining_index: 1
+initial_line_layout.line_size.cross: 50.03333333333333px, space_to_add_to_line: 22px
+Flexline cross size: container_inner_size_constraint.cross: Definite(160px)
+flex line cross_size: 160px
+Container cross size: 160px, content cross size: 160px, flex_axis: Column
+resolved_align_content: AlignFlags(2), remaining_free_cross_space: 0px, remaining_index: 1
+initial_line_layout.line_size.cross: 160px, space_to_add_to_line: 0px
+Containing block size: inline: 160px, block: MinMax(0px, None)
+Flexline cross size: container_inner_size_constraint.cross: MinMax(0px, None)
+flex line cross_size: 72.03333333333333px
+Container cross size: 72.03333333333333px, content cross size: 72.03333333333333px, flex_axis: Row
+resolved_align_content: AlignFlags(2), remaining_free_cross_space: 0px, remaining_index: 1
+initial_line_layout.line_size.cross: 72.03333333333333px, space_to_add_to_line: 0px

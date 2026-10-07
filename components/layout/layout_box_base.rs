@@ -205,11 +205,19 @@ impl LayoutBoxBase {
         containing_block_for_children: &ContainingBlock<'_>,
     ) -> Option<IndependentFormattingContextLayoutResult> {
         if self.cached_layout_result_dirty.load(Ordering::Relaxed) {
+            println!(
+                "[LayoutBoxBase cache miss (result dirty)] fragment={:?}",
+                self.base_fragment_info,
+            );
             return None;
         }
 
         let cache = self.cached_layout_result.borrow();
         let Some(LayoutResultAndInputs::IndependentFormattingContext(cache)) = &*cache else {
+            println!(
+                "[LayoutBoxBase cache miss (no cached result)] fragment={:?}",
+                self.base_fragment_info,
+            );
             return None;
         };
 
@@ -217,12 +225,24 @@ impl LayoutBoxBase {
         if cache.containing_block_for_children_size.inline !=
             containing_block_for_children.size.inline
         {
+            println!(
+                "[LayoutBoxBase cache miss (inline size mismatch)] fragment={:?} current_inline={:?} cached_inline={:?}",
+                self.base_fragment_info,
+                containing_block_for_children.size.inline,
+                cache.containing_block_for_children_size.inline,
+            );
             return None;
         }
         if cache.containing_block_for_children_size.block !=
             containing_block_for_children.size.block &&
             cache.result.depends_on_block_constraints
         {
+            println!(
+                "[LayoutBoxBase cache miss (block size mismatch)] fragment={:?} current_block={:?} cached_block={:?}",
+                self.base_fragment_info,
+                containing_block_for_children.size.block,
+                cache.containing_block_for_children_size.block,
+            );
             return None;
         }
 

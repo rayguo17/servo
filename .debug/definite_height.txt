@@ -1,0 +1,66 @@
+[FlexContainer::construct found enrichment-status element] element=ServoLayoutElement { element: <span> (0x3d41f30f380), pseudo_element_chain: PseudoElementChain { primary: None, secondary: None } } min_block_size=LengthPercentage(NonNegative(Length(30.0 px))) max_block_size=None
+[LayoutBoxBase cache miss (no cached result)] fragment=BaseFragmentInfo { tag: Some(Tag(OpaqueNode(4209591251320))), flags: FragmentFlags(IS_ROOT_ELEMENT) }
+[IndependentFormattingContext::layout start] fragment=BaseFragmentInfo { tag: Some(Tag(OpaqueNode(4209591251320))), flags: FragmentFlags(IS_ROOT_ELEMENT) } children_containing_block=ContainingBlockSize { inline: 1024px, block: MinMax(0px, None) }
+[LayoutBoxBase cache miss (no cached result)] fragment=BaseFragmentInfo { tag: Some(Tag(OpaqueNode(4209591251760))), flags: FragmentFlags(0x0) }
+[IndependentFormattingContext::layout start] fragment=BaseFragmentInfo { tag: Some(Tag(OpaqueNode(4209591251760))), flags: FragmentFlags(0x0) } children_containing_block=ContainingBlockSize { inline: 1008px, block: Definite(20px) }
+[FlexContainer::layout containing block size] container=b9313c12-6fdb-4a92-8072-0480e52e81e9 inline=1008px block=Definite(20px)
+[FlexContainer::layout container main size] container=b9313c12-6fdb-4a92-8072-0480e52e81e9 container_main_size=20px
+[FlexContainer::layout creating FlexItems] container=b9313c12-6fdb-4a92-8072-0480e52e81e9
+FlexItemBox::to_flex_item[fe9db0bc-8686-4724-bbc0-5c3379531611], tag: [BaseFragmentInfo { tag: Some(Tag(OpaqueNode(4209591251840))), flags: FragmentFlags(0x0) }], flex_axis: Column, content_box_sizes: Vec2 { i: Sizes { preferred: MaxContent, min: Initial, max: Initial }, b: Sizes { preferred: Initial, min: Numeric(28px), max: Initial } }
+[FlexItemBox::to_flex_item[fe9db0bc-8686-4724-bbc0-5c3379531611] cross axis is item block axis] cross_axis_is_item_block_axis=false
+FlexItemBox::to_flex_item[ac27dd8c-83f6-4550-befa-ebae9a8c0069], tag: [BaseFragmentInfo { tag: None, flags: FragmentFlags(0x0) }], flex_axis: Row, content_box_sizes: Vec2 { i: Sizes { preferred: Initial, min: Initial, max: Initial }, b: Sizes { preferred: Initial, min: Initial, max: Initial } }
+[FlexItemBox::to_flex_item[ac27dd8c-83f6-4550-befa-ebae9a8c0069] cross axis is item block axis] cross_axis_is_item_block_axis=true
+[ac27dd8c-83f6-4550-befa-ebae9a8c0069] main_content_size: LazyCell(ContentSizes { min_content: 24px, max_content: 24px })
+[ac27dd8c-83f6-4550-befa-ebae9a8c0069] content_max_main_size: None, content_min_main_size: 24px
+[FlexItemBox::layout_in_flow_block_children] item=BaseFragmentInfo { tag: Some(Tag(OpaqueNode(4209591251840))), flags: FragmentFlags(0x0) } content_size=ContainingBlockSize { inline: 24px, block: MinMax(0px, None) }, content_box_sizes: Vec2 { i: Sizes { preferred: MaxContent, min: Initial, max: Initial }, b: Sizes { preferred: Initial, min: Numeric(28px), max: Initial } }
+[LayoutBoxBase cache miss (no cached result)] fragment=BaseFragmentInfo { tag: Some(Tag(OpaqueNode(4209591251840))), flags: FragmentFlags(0x0) }
+[IndependentFormattingContext::layout start] fragment=BaseFragmentInfo { tag: Some(Tag(OpaqueNode(4209591251840))), flags: FragmentFlags(0x0) } children_containing_block=ContainingBlockSize { inline: 24px, block: MinMax(0px, None) }
+[FlexContainer::layout containing block size] container=28818d1f-59a7-4087-b321-85f6e00edab7 inline=24px block=MinMax(0px, None)
+[FlexContainer::layout container main size] container=28818d1f-59a7-4087-b321-85f6e00edab7 container_main_size=24px
+[FlexContainer::layout creating FlexItems] container=28818d1f-59a7-4087-b321-85f6e00edab7
+FlexItemBox::to_flex_item[032d0007-4af5-4db9-9278-7c8f2038211a], tag: [BaseFragmentInfo { tag: None, flags: FragmentFlags(0x0) }], flex_axis: Row, content_box_sizes: Vec2 { i: Sizes { preferred: Initial, min: Initial, max: Initial }, b: Sizes { preferred: Initial, min: Initial, max: Initial } }
+[FlexItemBox::to_flex_item[032d0007-4af5-4db9-9278-7c8f2038211a] cross axis is item block axis] cross_axis_is_item_block_axis=true
+[032d0007-4af5-4db9-9278-7c8f2038211a] main_content_size: LazyCell(ContentSizes { min_content: 24px, max_content: 24px })
+[032d0007-4af5-4db9-9278-7c8f2038211a] content_max_main_size: None, content_min_main_size: 24px
+[FlexContainer::layout initial flex line layout] container=28818d1f-59a7-4087-b321-85f6e00edab7
+[FlexItem::new lazy block size not determined] content_cross_sizes=Sizes { preferred: Initial, min: Initial, max: Initial } stretch_size=None
+[LayoutBoxBase cache miss (no cached result)] fragment=BaseFragmentInfo { tag: None, flags: FragmentFlags(0x0) }
+[IndependentFormattingContext::layout start] fragment=BaseFragmentInfo { tag: None, flags: FragmentFlags(0x0) } children_containing_block=ContainingBlockSize { inline: 24px, block: MinMax(0px, None) }
+[IndependentFormattingContext::layout end] fragment=BaseFragmentInfo { tag: None, flags: FragmentFlags(0x0) }
+[cross_size container inner size constraint] container_inner_size_constraint_cross=MinMax(0px, None)
+[InitialFlexLineLayout line cross size] line_cross_size=10px
+[FlexContainer::layout container cross size] container_cross_size=10px content_cross_size=10px flex_axis=Row
+[FlexContainer::layout align content] resolved_align_content=AlignFlags(2) remaining_free_cross_space=0px remaining_index=1
+[FlexContainer::layout line cross size allocation] line_cross_size=10px space_to_add_to_line=0px
+[flex-align anonymous item] tag=None align=AlignFlags(6) line_cross_size=10px used_cross_size=10px pbm_cross=0px margin_cross_start_auto=false margin_cross_end_auto=false ending_alignment=0px
+[IndependentFormattingContext::layout end] fragment=BaseFragmentInfo { tag: Some(Tag(OpaqueNode(4209591251840))), flags: FragmentFlags(0x0) }
+[fe9db0bc-8686-4724-bbc0-5c3379531611] main_content_size: LazyCell(ContentSizes { min_content: 10px, max_content: 10px })
+[fe9db0bc-8686-4724-bbc0-5c3379531611] content_max_main_size: None, content_min_main_size: 28px
+[FlexContainer::layout initial flex line layout] container=b9313c12-6fdb-4a92-8072-0480e52e81e9
+[FlexItem::new lazy block size is used main size] used_main_size=28px
+[LayoutBoxBase cache miss (block size mismatch)] fragment=BaseFragmentInfo { tag: Some(Tag(OpaqueNode(4209591251840))), flags: FragmentFlags(0x0) } current_block=Definite(28px) cached_block=MinMax(0px, None)
+[IndependentFormattingContext::layout start] fragment=BaseFragmentInfo { tag: Some(Tag(OpaqueNode(4209591251840))), flags: FragmentFlags(0x0) } children_containing_block=ContainingBlockSize { inline: 24px, block: Definite(28px) }
+[FlexContainer::layout containing block size] container=b4fcd04c-619c-450d-9023-3090663f5f08 inline=24px block=Definite(28px)
+[FlexContainer::layout container main size] container=b4fcd04c-619c-450d-9023-3090663f5f08 container_main_size=24px
+[FlexContainer::layout creating FlexItems] container=b4fcd04c-619c-450d-9023-3090663f5f08
+FlexItemBox::to_flex_item[5ed0a68a-ad33-40fa-8ad9-5b16f98b29fc], tag: [BaseFragmentInfo { tag: None, flags: FragmentFlags(0x0) }], flex_axis: Row, content_box_sizes: Vec2 { i: Sizes { preferred: Initial, min: Initial, max: Initial }, b: Sizes { preferred: Initial, min: Initial, max: Initial } }
+[FlexItemBox::to_flex_item[5ed0a68a-ad33-40fa-8ad9-5b16f98b29fc] cross axis is item block axis] cross_axis_is_item_block_axis=true
+[5ed0a68a-ad33-40fa-8ad9-5b16f98b29fc] main_content_size: LazyCell(ContentSizes { min_content: 24px, max_content: 24px })
+[5ed0a68a-ad33-40fa-8ad9-5b16f98b29fc] content_max_main_size: None, content_min_main_size: 24px
+[FlexContainer::layout initial flex line layout] container=b4fcd04c-619c-450d-9023-3090663f5f08
+[FlexItem::new lazy block size not determined] content_cross_sizes=Sizes { preferred: Initial, min: Initial, max: Initial } stretch_size=Some(28px)
+[IndependentFormattingContext::layout cache hit] fragment=BaseFragmentInfo { tag: None, flags: FragmentFlags(0x0) } block_size=10px
+[cross_size container inner size constraint] container_inner_size_constraint_cross=Definite(28px)
+[InitialFlexLineLayout line cross size] line_cross_size=28px
+[FlexContainer::layout container cross size] container_cross_size=28px content_cross_size=28px flex_axis=Row
+[FlexContainer::layout align content] resolved_align_content=AlignFlags(2) remaining_free_cross_space=0px remaining_index=1
+[FlexContainer::layout line cross size allocation] line_cross_size=28px space_to_add_to_line=0px
+[flex-align anonymous item] tag=None align=AlignFlags(6) line_cross_size=28px used_cross_size=10px pbm_cross=0px margin_cross_start_auto=false margin_cross_end_auto=false ending_alignment=18px
+[IndependentFormattingContext::layout end] fragment=BaseFragmentInfo { tag: Some(Tag(OpaqueNode(4209591251840))), flags: FragmentFlags(0x0) }
+[cross_size container inner size constraint] container_inner_size_constraint_cross=Definite(1008px)
+[InitialFlexLineLayout line cross size] line_cross_size=1008px
+[FlexContainer::layout container cross size] container_cross_size=1008px content_cross_size=1008px flex_axis=Column
+[FlexContainer::layout align content] resolved_align_content=AlignFlags(2) remaining_free_cross_space=0px remaining_index=1
+[FlexContainer::layout line cross size allocation] line_cross_size=1008px space_to_add_to_line=0px
+[IndependentFormattingContext::layout end] fragment=BaseFragmentInfo { tag: Some(Tag(OpaqueNode(4209591251760))), flags: FragmentFlags(0x0) }
+[IndependentFormattingContext::layout end] fragment=BaseFragmentInfo { tag: Some(Tag(OpaqueNode(4209591251320))), flags: FragmentFlags(IS_ROOT_ELEMENT) }
